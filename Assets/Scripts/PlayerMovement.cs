@@ -4,58 +4,111 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Initialization")]
+    private Rigidbody rigidBody;            // Player's rigid body component
+    private float horizontalInput;          // Track horizontal key presses (A and D)
+    private float verticalInput;            // Track vertical key presses (W and S)
+    private Vector3 moveDirection;          // Vector to calculate how to apply force
+
+    public Transform orientation;           // Empty object attached to player to get their rotation for movement application based on rotation
+    public MovementState movementState;     // Current state of the player based on enumeration below
+    // Enumeration to track the current state of the player
+    public enum MovementState
+    {
+        walking,
+        sprinting,
+        crouching,
+        airborne
+    }
+
+
     [Header("Movement")]
-    public float moveSpeed = 7f;            // Max move speed
+    private float moveSpeed;                // Max movement speed changed dynamically based on player's movement state
+    public float walkSpeed = 7f;            // Max walking speed
+    public float sprintSpeed = 10f;         // Max Sprinting speed
     public float groundDrag = 5f;           // Drag While Grounded
+
+
+    [Header("Jumping")]
     public float jumpForce = 12f;           // Force applied when Jumping
     public float jumpCooldown = 0.25f;      // jumpCooldown in case we want it
     public float airMultiplier = 0.4f;      // Speed multiplier for air movement for fluid momentum
-    public bool readyToJump;                // Flag used for jumpCooldown
+    private bool readyToJump;               // Flag used for jumpCooldown
+
+
+    [Header("Crouching")]
+    public float crouchSpeed = 3.5f;        // Movement speed while crouching
+    public float crouchYscale = 0.5f;       // Amount the player shrinks when crouching
+    private float startYscale;              // Start scale to reset the player after crouching
 
 
     [Header("Ground Check")]
     public Transform groundCheck;           // Empty object attached to player to check for the ground beneath them
     public float groundDistance = 0.2f;     // Radius around groundCheck to check if the player is on the ground
     public LayerMask whatIsGround;          // Layer assigned to ground objects to reset jumps and apply ground drag or airMultiplier
-    public bool grounded;                   // Grounded flag
+    private bool grounded;                  // Grounded flag
 
 
+    [Header("Slope Handling")]
+    // groundCheck doesn't reach far enough down using a box collider on a slope so we need another checker further down
+    // for a slope. slopeCheck is too far down though and allows the player to jump before touching the ground. Thats why
+    // we need two checks
+    public Transform slopeCheck;            // Empty object attached to the player to check for slopes beneath them
+    public float maxSlopeAngle = 40f;       // Maximum slope the player can walk up
+    private bool isOnSlope;
+    private RaycastHit slopeHit;            // Detected slope that the player hit
+    private bool exitingSlope;              // Flag Variable used to allow jumping on ramps
+
+
+    // Area for Keybinds so we can apply settings from a settings menu
     [Header("Keybinds")]
-    public KeyCode jumpKey = KeyCode.Space; // Area for Keybinds so we can apply settings from a settings menu
+    public KeyCode jumpKey = KeyCode.Space;             // Space keybind
+    public KeyCode sprintKey = KeyCode.LeftShift;       // Sprint keybind
+    public KeyCode crouchKey = KeyCode.LeftControl;     // Crouch keyvind
 
-
-
-    public Transform orientation;           // Empty object attached to player to get their rotation for movement application based on rotation
-    private Rigidbody rigidBody;            // Player's rigid body component
-    private float horizontalInput;          // Track horizontal key presses (A and D)
-    private float verticalInput;            // Track vertical key presses (W and S)
-
-    private Vector3 moveDirection;          // Vector to calculate how to apply force
 
 
     private void Start()
     {
         rigidBody = GetComponent<Rigidbody>();  // Get Player's Rigidbody component
         rigidBody.freezeRotation = true;        // Freeze RigidBody's rotation
+
         readyToJump = true;                     // Allow the player to start with jump ready
+
+        startYscale = transform.localScale.y;   // Grab the initial scale of the player to reset after crouching
     }
 
 
     private void Update() {
-        // Checks in a sphere around the groundCheck empty object for objects with whatIsGround layer title to detect if the player is grounded
+        // Checks in a sphere around the groundCheck and slope check empty objects for objects with whatIsGround layer title
+        // to detect if the player is grounded
         grounded = Physics.CheckSphere(groundCheck.position, groundDistance, whatIsGround);
+        isOnSlope = Physics.CheckSphere(slopeCheck.position, groundDistance, whatIsGround);
 
+        /*
+         * Order Reasoning:
+         * - UserInput(): 
+         *      - Jump does not allow crouching size change. When Jump is called, it resets the player's size but not their speed
+         * - StateHandler():
+         *      - Based on the User's state, it sets the users max speed based on crouching, walking, or sprinting
+         *      - Handling is Different based on grounded or airborne. Max Speed Stays the same but crouch sizing is different
+         * - SpeedControl():
+         *      - Encorporates the player's max speed and prevents infinite acceleration
+         */
         // Gets the user's input
-        MyInput();
+        UserInput();
+        // Changes player's movement state based on their actions performed
+        StateHandler();
         // Caps max speed so the player doesnt infinitely accelerate
         SpeedControl();
+        
 
         // Applies ground drag if grounded
-        if(grounded)
+        if(grounded || isOnSlope)
         {
             rigidBody.drag = groundDrag;
         }
-        // Doesn't apply ground drag if airborne
+        // Doesn't apply ground drag if airborne for better air control
         else
         {
             rigidBody.drag = 0;
@@ -69,21 +122,143 @@ public class PlayerMovement : MonoBehaviour
     }
 
     // Function that tracks user input
-    private void MyInput()
+    private void UserInput()
     {
         // Gets horizontal and vertical input (WASD)
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
+    }
 
-        // Detects Space key press. Allows jump as long as jumpcooldown has expired and is grounded
-        if (Input.GetKey(jumpKey) && readyToJump && grounded)
+    // Function to handle movement state changes
+    private void StateHandler()
+    {
+        // Grounded State Handler. All If statements assume you are grounded
+        if (grounded || isOnSlope)
         {
-            // jump flag
-            readyToJump = false;
-            // Jump function
-            Jump();
-            // Starts jump cooldown
-            Invoke(nameof(ResetJump), jumpCooldown);
+
+            if (Input.GetKeyUp(crouchKey))
+            {
+                // Resets the player's Y scale to their default scale
+                transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
+            }
+
+            // Detects Space key press. Allows jump as long as jumpcooldown has expired and is grounded
+            // If slope check is true, we need to double check that the object its colliding with is in fact sloped
+            // This is to prevent slope check from detecting a normal ground object and allowing the player to jump
+            // again before reaching the ground. Aka, if the object is flat, groundcheck needs to be true
+            if (Input.GetKey(jumpKey)
+                && readyToJump
+                && (grounded
+                || (isOnSlope && OnSlope())))
+            {
+                // jump flag (also prevents crouching since you are in the process of jumping)
+                readyToJump = false;
+
+                if (Input.GetKey(crouchKey))
+                {
+                    // Forces stoping crouch before jumping
+                    ForceStopCrouch();
+                }
+
+                // Jump function
+                Jump();
+                // Starts jump cooldown before resetting the jump flag
+                Invoke(nameof(ResetJump), jumpCooldown);
+            }
+
+
+            // Sprint Takes Precedence. Sets moveSpeed to sprintSpeed and forces crouching to stop
+            if (Input.GetKey(sprintKey))
+            {
+                // If crouch and sprint are pressed at the same time, sprint takes precidence
+                if (Input.GetKey(crouchKey))
+                {
+                    ForceStopCrouch();
+                }
+
+                movementState = MovementState.sprinting;
+                moveSpeed = sprintSpeed;
+            }
+            // Crouching takes second precidence. Sets moveSpeed to crouchSpeed and sets Yscale
+            else if (Input.GetKey(crouchKey))
+            {
+                movementState = MovementState.crouching;
+                moveSpeed = crouchSpeed;
+                if (readyToJump)
+                {
+                    transform.localScale = new Vector3(transform.localScale.x, crouchYscale, transform.localScale.z);
+                }
+            }
+            // Sets moveSpeed to walkSpeed if grounded and not sprinting or crouching
+            else
+            {
+                movementState = MovementState.walking;
+                moveSpeed = walkSpeed;
+            }
+
+
+        }
+        // Airborne State Handler. All if statements assume you are airborne
+        else
+        {
+
+            // moveSpeed set to sprint speed while airborne to allow for faster air movement when sprinting (Takes Precidence over crouching)
+            if (Input.GetKey(sprintKey))
+            {
+                movementState = MovementState.airborne;
+                moveSpeed = sprintSpeed;
+            }
+            // Doesn't allow crouching while mid air (size stays the same) but does allow for lower speed while airborne
+            else if (Input.GetKey(crouchKey))
+            {
+                movementState = MovementState.airborne;
+                moveSpeed = crouchSpeed;
+            }
+            // If neither crouch or sprint are pressed, airborne max speed is set to walk speed
+            else
+            {
+                movementState = MovementState.walking;
+                moveSpeed = walkSpeed;
+            }
+
+
+        }
+ 
+    }
+
+    // Function that prevents infinite acceleration
+    private void SpeedControl()
+    {
+        /*
+         * - Checks if you are on a slope (GetSlopeMovementDirection function sets your velocity at the same angle as the 
+         *   slope and is called in the move player function based on the OnSlope() function) 
+         * - exitSlope is a flag set in the jump function. Move Player adds downward force while on a slope 
+         *   because of physics mechanics causing you to bounce while going up ramps. exitingSlope prevents this
+         *   downward force to allow the player to jump
+         */
+        if (OnSlope() && !exitingSlope)
+        {
+            // Default movement tracks magnitude only on the x and z axis so jumping doesnt lower speed.
+            // When on a slope, the vertical magnitude needs to be tracked too. (Except when you jump aka. exitingSlope)
+            if (rigidBody.velocity.magnitude > moveSpeed)
+            {
+                rigidBody.velocity = rigidBody.velocity.normalized * moveSpeed;
+            }
+        }
+        else
+        {
+            // Gets the velocity (excluding the y axis since you aren't on a slope)
+            Vector3 flatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+
+            // Checks if magnitude of x and y velocity is over the move speed
+            if (flatVelocity.magnitude > moveSpeed)
+            {
+                // Normalizes the flat velocity (sets flat velocity to 1) and multiplies by move speed to cap the horizontal move speed
+                Vector3 limitedVelocity = flatVelocity.normalized * moveSpeed;
+
+                // Sets rigidBody's velocity to this limited velocity and keeps y velocity
+                rigidBody.velocity = new Vector3(limitedVelocity.x, rigidBody.velocity.y, limitedVelocity.z);
+            }
         }
     }
 
@@ -93,40 +268,51 @@ public class PlayerMovement : MonoBehaviour
         // Creates vector to apply force based on the player's orientation and their directional input
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
-        if(grounded)
+        // Checks if you are on a slope and not attempting to jump
+        if(OnSlope() && !exitingSlope)
+        {
+            // GetSlopeMovementDirection returns a Vector3 of the slope angle combined with the movement direction
+            // normailzed to 1
+            rigidBody.AddForce(GetSlopeMovementDirection() * moveSpeed * 20f, ForceMode.Force);
+
+            // Applies a downward focre to avoid physics mechanics causing you to bounce on ramps if you are
+            // moving up the ramp
+            if(rigidBody.velocity.y > 0)
+            {
+                rigidBody.AddForce(Vector3.down * 80f, ForceMode.Force);
+            }
+        }
+
+        if(grounded || isOnSlope)
         {
             // Applies grounded acceleration
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
         }
-        else if (!grounded)
+        else if (!grounded && !isOnSlope)
         {
             // Applies acceleration with airMultiplier
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
         }
 
-        
+        // Stops using gravity if you are on a slope to prevent the player from sliding down the ramp when standing still
+        rigidBody.useGravity = !OnSlope();
     }
 
-    // Function that prevents infinite acceleration
-    private void SpeedControl()
+    
+
+    // Function to stop crouching even if crouch is being pressed
+    private void ForceStopCrouch()
     {
-        // Gets the velocity (excluding the y axis)
-        Vector3 flatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
-
-        // Checks if magnitude of x and y velocity is over the move speed
-        if (flatVelocity.magnitude > moveSpeed)
-        {
-            // Normalizes the flat velocity (sets flat velocity to 1) and multiplies by move speed to cap the horizontal move speed
-            Vector3 limitedVelocity = flatVelocity.normalized * moveSpeed;
-
-            // Sets rigidBody's velocity to this limited velocity and keeps y velocity
-            rigidBody.velocity = new Vector3(limitedVelocity.x, rigidBody.velocity.y, limitedVelocity.z);
-        }
+        // Resets the players scale to their default scale
+        transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
     }
 
     // Function that applies force upward for jump
     private void Jump()
     {
+        // Flag to stop downward force when the player is attempting to jump on a ramp
+        exitingSlope = true;
+
         // Resets the y velocity so jump velocity is consistant (not added to preexisting vertical velocity positive or negative)
         rigidBody.velocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
 
@@ -137,7 +323,57 @@ public class PlayerMovement : MonoBehaviour
     // Function that resets readyToJump for Invoke call on jump cooldown
     private void ResetJump()
     {
+        // Resets Jump Flag
         readyToJump = true;
+
+        // Jumping on slope flag
+        exitingSlope = false;
+    }
+
+    // Function that detects whether the player is on a ground object that is sloped
+    private bool OnSlope()
+    {
+        // Collects all the hit ground objects and collects their colliders in an array
+        Collider[] hitColliders = Physics.OverlapSphere(slopeCheck.position, groundDistance, whatIsGround);
+
+        // Loops through the array of colliders
+        foreach (Collider hitCollider in hitColliders)
+        {
+            // Gets the closest point on the collider to the player
+            Vector3 closestPoint = hitCollider.ClosestPoint(transform.position);
+
+            /* 
+             * Performs a raycast. Explination of each portion:
+             * 
+             * - "Physics.Raycast()" - Casts a ray and returns a boolean to say it hit an object
+             * 
+             * - "closestPoint + Vector3.up * 0.1f" : The origin of the ray starts at the closest point on the collider and 
+             * adds .01 to the y position of the origin of the array. So it starts slightly above the closest point on the collider
+             * 
+             * - "Vector3.down" : Shoots the ray downward so the ray hits the object it was positioned above
+             * 
+             * - "out slopeHit" : Stores the hit object in the slopeHit variable
+             * 
+             * - "0.2f" : Length of the ray is a floating point number 0.2f, just enough to hit the object below it
+             */
+            if (Physics.Raycast(closestPoint + Vector3.up * 0.1f, Vector3.down, out slopeHit, 0.2f))
+            {
+                // Calculates the angle of the normal (the face of the object) it hit
+                float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+                // Returns true if the angle is walkable (less than the max slope angle) and is greater than 0 (not flat)
+                return angle < maxSlopeAngle && angle != 0;
+            }
+        }
+
+        // Returns false if no ground was hit, the angle is not walkable, or if the ground is flat (AKA if the player is not on a slope)
+        return false;
+    }
+
+    // Function that returns a normalized vector of the players movement direction combined with slope angle to add
+    // force along the slope rather than directly into it
+    private Vector3 GetSlopeMovementDirection()
+    {
+        return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
 
 }
