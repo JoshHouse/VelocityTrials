@@ -9,6 +9,12 @@ public class PlayerMovement : MonoBehaviour
     private float horizontalInput;          // Track horizontal key presses (A and D)
     private float verticalInput;            // Track vertical key presses (W and S)
     private Vector3 moveDirection;          // Vector to calculate how to apply force
+    private Transform body;                 // Gets the body child object in the start function
+    private Renderer bodyRenderer;          // Gets the renderer of the body in the start function
+    private float bodyLength;               // Gets the length of the body after rendering from the renderer
+    private float bodyWidth;                // Gets the width of the body after rendering from the renderer
+    private float bodyHeight;               // Gets the height of the body after rendering from the renderer
+
 
     public Transform orientation;           // Empty object attached to player to get their rotation for movement application based on rotation
     public MovementState movementState;     // Current state of the player based on enumeration below
@@ -46,16 +52,12 @@ public class PlayerMovement : MonoBehaviour
     public Transform groundCheck;           // Empty object attached to player to check for the ground beneath them
     public float groundDistance = 0.2f;     // Radius around groundCheck to check if the player is on the ground
     public LayerMask whatIsGround;          // Layer assigned to ground objects to reset jumps and apply ground drag or airMultiplier
+    private Vector3 groundCheckArea;        // Vector3 for the area to check for ground under the player (calculated based on size)
     private bool grounded;                  // Grounded flag
 
 
     [Header("Slope Handling")]
-    // groundCheck doesn't reach far enough down using a box collider on a slope so we need another checker further down
-    // for a slope. slopeCheck is too far down though and allows the player to jump before touching the ground. Thats why
-    // we need two checks
-    public Transform slopeCheck;            // Empty object attached to the player to check for slopes beneath them
     public float maxSlopeAngle = 40f;       // Maximum slope the player can walk up
-    private bool isOnSlope;
     private RaycastHit slopeHit;            // Detected slope that the player hit
     private bool exitingSlope;              // Flag Variable used to allow jumping on ramps
 
@@ -76,14 +78,49 @@ public class PlayerMovement : MonoBehaviour
         readyToJump = true;                     // Allow the player to start with jump ready
 
         startYscale = transform.localScale.y;   // Grab the initial scale of the player to reset after crouching
+
+        // Get the child from position 0 (the body object)
+        body = transform.GetChild(0);
+        if (body != null)
+        {
+            // Get the renderer component of that object
+            bodyRenderer = body.GetComponent<Renderer>();
+            if (bodyRenderer != null)
+            {
+                // Get the Length, Width, and Height of the body from the renderer
+                bodyWidth = bodyRenderer.bounds.size.x;
+                bodyLength = bodyRenderer.bounds.size.z;
+                bodyHeight = bodyRenderer.bounds.size.y;
+            }
+            else
+            {
+                // Default with the capsule object if the code grabbed the wrong component or the body doesnt have a renderer
+                bodyWidth = 1;
+                bodyLength = 1;
+                bodyHeight = 2;
+            }
+
+            /*
+             * Vector 3 of the length and width of the body and a height of the ground distance:
+             * This is used to initialize the groundCheck boolean. It is essentially the area we will be checking.
+             * All distances start at the origin of the groundcheck object, which is in the center of the player.
+             * so we devide by two to get the distance to the edge from the center. We subtract a small amount to
+             * avoid collision detection issues when pushed up against a ground object.the groundCheck object is at
+             * the player's feet so we don't need to divide it by two since the distance from the origin starts at
+             * the player's feet.
+             * 
+             * So what this says is, "I want you to check a box under the player that is the length of the player and 
+             * the width ofthe player, but the height specified in the unity editor for how far we want to check under the player"
+             */
+            groundCheckArea = new Vector3(bodyWidth / 2 - .01f, groundDistance, bodyLength / 2 - .01f);
+        }
     }
 
 
     private void Update() {
-        // Checks in a sphere around the groundCheck and slope check empty objects for objects with whatIsGround layer title
+        // Checks in a box around the groundCheck empty object for objects with whatIsGround layer title
         // to detect if the player is grounded
-        grounded = Physics.CheckSphere(groundCheck.position, groundDistance, whatIsGround);
-        isOnSlope = Physics.CheckSphere(slopeCheck.position, groundDistance, whatIsGround);
+        grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
 
         /*
          * Order Reasoning:
@@ -104,7 +141,7 @@ public class PlayerMovement : MonoBehaviour
         
 
         // Applies ground drag if grounded
-        if(grounded || isOnSlope)
+        if(grounded)
         {
             rigidBody.drag = groundDrag;
         }
@@ -133,7 +170,7 @@ public class PlayerMovement : MonoBehaviour
     private void StateHandler()
     {
         // Grounded State Handler. All If statements assume you are grounded
-        if (grounded || isOnSlope)
+        if (grounded)
         {
 
             if (Input.GetKeyUp(crouchKey))
@@ -143,13 +180,7 @@ public class PlayerMovement : MonoBehaviour
             }
 
             // Detects Space key press. Allows jump as long as jumpcooldown has expired and is grounded
-            // If slope check is true, we need to double check that the object its colliding with is in fact sloped
-            // This is to prevent slope check from detecting a normal ground object and allowing the player to jump
-            // again before reaching the ground. Aka, if the object is flat, groundcheck needs to be true
-            if (Input.GetKey(jumpKey)
-                && readyToJump
-                && (grounded
-                || (isOnSlope && OnSlope())))
+            if (Input.GetKey(jumpKey) && readyToJump)
             {
                 // jump flag (also prevents crouching since you are in the process of jumping)
                 readyToJump = false;
@@ -283,12 +314,12 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        if(grounded || isOnSlope)
+        if(grounded)
         {
             // Applies grounded acceleration
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
         }
-        else if (!grounded && !isOnSlope)
+        else if (!grounded)
         {
             // Applies acceleration with airMultiplier
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
@@ -300,7 +331,7 @@ public class PlayerMovement : MonoBehaviour
 
     
 
-    // Function to stop crouching even if crouch is being pressed
+    // Function to stop crouch resizing even if crouch is being pressed
     private void ForceStopCrouch()
     {
         // Resets the players scale to their default scale
@@ -320,7 +351,7 @@ public class PlayerMovement : MonoBehaviour
         rigidBody.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
 
-    // Function that resets readyToJump for Invoke call on jump cooldown
+    // Function that resets readyToJump for Invoke call on jump cooldown and slope jump flag
     private void ResetJump()
     {
         // Resets Jump Flag
@@ -333,8 +364,8 @@ public class PlayerMovement : MonoBehaviour
     // Function that detects whether the player is on a ground object that is sloped
     private bool OnSlope()
     {
-        // Collects all the hit ground objects and collects their colliders in an array
-        Collider[] hitColliders = Physics.OverlapSphere(slopeCheck.position, groundDistance, whatIsGround);
+        // Checks all the hit ground objects and collects their colliders in an array
+        Collider[] hitColliders = Physics.OverlapBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
 
         // Loops through the array of colliders
         foreach (Collider hitCollider in hitColliders)
