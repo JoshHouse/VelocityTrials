@@ -248,7 +248,7 @@ public class PlayerMovement : MonoBehaviour
             // If neither crouch or sprint are pressed, airborne max speed is set to walk speed
             else
             {
-                movementState = MovementState.walking;
+                movementState = MovementState.airborne;
                 moveSpeed = walkSpeed;
             }
 
