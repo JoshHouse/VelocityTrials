@@ -1029,6 +1029,14 @@ PrefabInstance:
       propertyPath: orientation
       value: 
       objectReference: {fileID: 574312884}
+    - target: {fileID: 6580941486514894237, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
+      propertyPath: sensitivityX
+      value: 1200
+      objectReference: {fileID: 0}
+    - target: {fileID: 6580941486514894237, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
+      propertyPath: sensitivityY
+      value: 1200
+      objectReference: {fileID: 0}
     - target: {fileID: 6970200725290545156, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
       propertyPath: cameraPosition
       value: 
