@@ -24,7 +24,7 @@ public class PlayerMovement : MonoBehaviour
         walking,
         sprinting,
         crouching,
-        airborne
+        airborne,
     }
 
 
@@ -67,7 +67,6 @@ public class PlayerMovement : MonoBehaviour
     public KeyCode jumpKey = KeyCode.Space;             // Space keybind
     public KeyCode sprintKey = KeyCode.LeftShift;       // Sprint keybind
     public KeyCode crouchKey = KeyCode.LeftControl;     // Crouch keyvind
-
 
 
     private void Start()
@@ -137,8 +136,7 @@ public class PlayerMovement : MonoBehaviour
         // Changes player's movement state based on their actions performed
         StateHandler();
         // Caps max speed so the player doesnt infinitely accelerate
-        SpeedControl();
-        
+        SpeedControl();        
 
         // Applies ground drag if grounded
         if(grounded)
@@ -405,6 +403,6 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 GetSlopeMovementDirection()
     {
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
-    }
+    }   
 
 }
