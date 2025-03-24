@@ -122,11 +122,11 @@ public class PlayerMovement : MonoBehaviour
             groundCheckArea = new Vector3(bodyWidth / 2 - .01f, groundDistance, bodyLength / 2 - .01f);
 
             /*
-             * Like groundCheckArea, this box extends from the player's feet and checks for walls to the right or left of them,
-             * thus, bodyWidth is incrased to more than bodyWidth/2, to widen the box, other values are kept the same so wall detection
-             * feels tied to the playr's feet (like how grounded is), minor offsetting is also carried over from groundCheckArea
+             * Like groundCheckArea, this box extends from the player's feet, but it checks for walls to the right or left of them,
+             * thus, bodyWidth is incrased to more than bodyWidth/2, to widen the box, and other values are kept similar so wall detection
+             * feels tied to the playr's feet (like how grounded is), minor offsetting is done via wallCheckPadding variable
              */
-            wallCheckArea = new Vector3(bodyWidth + wallCheckPadding, groundDistance, bodyLength / 2 - .01f);
+            wallCheckArea = new Vector3(bodyWidth + wallCheckPadding, groundDistance, bodyLength / 2 + wallCheckPadding);
         }
     }
 
@@ -136,8 +136,9 @@ public class PlayerMovement : MonoBehaviour
         // to detect if the player is grounded
         grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
 
-        onWall = Physics.CheckBox(groundCheck.position, wallCheckArea, Quaternion.identity, whatIsWall);
-        Debug.Log(onWall);
+        // Checks in a box around groundCheck (Player's feet) for objects with whatIsWall layer
+        onWall = Physics.CheckBox(groundCheck.position, wallCheckArea, orientation.rotation, whatIsWall);
+        Debug.Log("onWall: " + onWall);
 
         /*
          * Order Reasoning:
