@@ -267,8 +267,6 @@ public class PlayerMovement : MonoBehaviour
                 movementState = MovementState.walking;
                 moveSpeed = walkSpeed;
             }
-
-
         }
         // If grappling, movement state stays as grappling
         else if (isGrappling)
@@ -387,6 +385,10 @@ public class PlayerMovement : MonoBehaviour
             {
                 rigidBody.AddForce(GetSlopeMovementDirection() * moveSpeed * 20f, ForceMode.Force);
             }
+        }
+        else if (!OnSlope() && enteredSlope)
+        {
+            enteredSlope = false;
         }
 
         if(grounded)
