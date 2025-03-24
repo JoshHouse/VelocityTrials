@@ -26,7 +26,6 @@ public class PlayerMovement : MonoBehaviour
     private float bodyWidth;                // Gets the width of the body after rendering from the renderer
     private float bodyHeight;               // Gets the height of the body after rendering from the renderer
 
-
     [Header("Movement")]
     private float moveSpeed;                // Max movement speed changed dynamically based on player's movement state
     public float walkSpeed = 7f;            // Max walking speed
@@ -88,7 +87,6 @@ public class PlayerMovement : MonoBehaviour
     public KeyCode sprintKey = KeyCode.LeftShift;       // Sprint keybind
     public KeyCode crouchKey = KeyCode.LeftControl;     // Crouch keybind
     public KeyCode grappleKey = KeyCode.Mouse0;         // Grapple keybind
-
 
 
     private void Start()
@@ -165,7 +163,6 @@ public class PlayerMovement : MonoBehaviour
         StateHandler();
         // Rotates the arm when grappling
         RotateArmOnGrapple();
-        
 
         // Applies ground drag if grounded
         if(grounded)
@@ -505,7 +502,7 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 GetSlopeMovementDirection()
     {
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
-    }
+    }   
 
     // Function to get the slope angle for modifying player velocity when entering a slope
     private float GetSlopeAngle()
