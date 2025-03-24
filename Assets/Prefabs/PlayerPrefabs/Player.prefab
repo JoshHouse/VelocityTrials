@@ -36,7 +36,6 @@ Transform:
   - {fileID: 8007472012848371061}
   - {fileID: 1688952838296206350}
   - {fileID: 863808895886702816}
-  - {fileID: 4368780903677572112}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7309200795258967044
@@ -61,6 +60,15 @@ MonoBehaviour:
   airMultiplier: 0.4
   crouchSpeed: 3.5
   crouchYscale: 0.5
+  whatIsGrapplable:
+    serializedVersion: 2
+    m_Bits: 0
+  grappleFirePoint: {fileID: 0}
+  playerCamera: {fileID: 0}
+  armGrapple: {fileID: 0}
+  grapplesAllowed: 2
+  maxGrappleDistance: 100
+  rotationSpeed: 5
   groundCheck: {fileID: 863808895886702816}
   groundDistance: 0.2
   whatIsGround:
@@ -70,6 +78,7 @@ MonoBehaviour:
   jumpKey: 32
   sprintKey: 304
   crouchKey: 306
+  grappleKey: 323
 --- !u!114 &1359633560480262143
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84,6 +93,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 0}
   movementScript: {fileID: 7309200795258967044}
+  playerCollider: {fileID: 0}
 --- !u!54 &5491929309150600141
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -168,37 +178,6 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1.5, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7812680945247674416}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3978910254945286925
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4368780903677572112}
-  m_Layer: 0
-  m_Name: SlopeCheck
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4368780903677572112
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3978910254945286925}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.2, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
