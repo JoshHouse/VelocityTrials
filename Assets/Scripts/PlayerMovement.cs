@@ -55,11 +55,16 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 groundCheckArea;        // Vector3 for the area to check for ground under the player (calculated based on size)
     private bool grounded;                  // Grounded flag
 
-
     [Header("Slope Handling")]
     public float maxSlopeAngle = 40f;       // Maximum slope the player can walk up
     private RaycastHit slopeHit;            // Detected slope that the player hit
     private bool exitingSlope;              // Flag Variable used to allow jumping on ramps
+
+    [Header("Wall Running")]
+    public float wallCheckPadding;          // Adjustment added to width of wallCheckArea, extends right or left (bodyWdith + wallCheckPadding) units
+    public LayerMask whatIsWall;            // Layer assigned to wall objects for wallrunning/walljumping
+    private Vector3 wallCheckArea;          // Vector3 for the "halfExtents" representing the box to check for walls to right or left of player
+    private bool onWall;                    // On Wall flag
 
 
     // Area for Keybinds so we can apply settings from a settings menu
@@ -76,6 +81,8 @@ public class PlayerMovement : MonoBehaviour
         rigidBody.freezeRotation = true;        // Freeze RigidBody's rotation
 
         readyToJump = true;                     // Allow the player to start with jump ready
+
+        onWall = false;                         // Initilize whether player is on a wall
 
         startYscale = transform.localScale.y;   // Grab the initial scale of the player to reset after crouching
 
@@ -113,6 +120,13 @@ public class PlayerMovement : MonoBehaviour
              * the width ofthe player, but the height specified in the unity editor for how far we want to check under the player"
              */
             groundCheckArea = new Vector3(bodyWidth / 2 - .01f, groundDistance, bodyLength / 2 - .01f);
+
+            /*
+             * Like groundCheckArea, this box extends from the player's feet and checks for walls to the right or left of them,
+             * thus, bodyWidth is incrased to more than bodyWidth/2, to widen the box, other values are kept the same so wall detection
+             * feels tied to the playr's feet (like how grounded is), minor offsetting is also carried over from groundCheckArea
+             */
+            wallCheckArea = new Vector3(bodyWidth + wallCheckPadding, groundDistance, bodyLength / 2 - .01f);
         }
     }
 
@@ -121,6 +135,9 @@ public class PlayerMovement : MonoBehaviour
         // Checks in a box around the groundCheck empty object for objects with whatIsGround layer title
         // to detect if the player is grounded
         grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
+
+        onWall = Physics.CheckBox(groundCheck.position, wallCheckArea, Quaternion.identity, whatIsWall);
+        Debug.Log(onWall);
 
         /*
          * Order Reasoning:
