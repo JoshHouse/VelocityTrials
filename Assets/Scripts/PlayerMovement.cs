@@ -55,16 +55,22 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 groundCheckArea;        // Vector3 for the area to check for ground under the player (calculated based on size)
     private bool grounded;                  // Grounded flag
 
+
     [Header("Slope Handling")]
     public float maxSlopeAngle = 40f;       // Maximum slope the player can walk up
     private RaycastHit slopeHit;            // Detected slope that the player hit
     private bool exitingSlope;              // Flag Variable used to allow jumping on ramps
 
+
     [Header("Wall Running")]
-    public float wallCheckPadding;          // Adjustment added to width of wallCheckArea, extends right or left (bodyWdith + wallCheckPadding) units
+    private float wallCheckOffset;          // Offset to added to left and right of groundCheck to check for walls (set to be edge of player's width)
+    public float wallCheckRadius;           // Radius of CheckSpheres representing the distance away from player's sides that will be checked for walls
     public LayerMask whatIsWall;            // Layer assigned to wall objects for wallrunning/walljumping
-    private Vector3 wallCheckArea;          // Vector3 for the "halfExtents" representing the box to check for walls to right or left of player
-    private bool onWall;                    // On Wall flag
+    private bool onWallToRight;             // On Wall flag for when a wall is to the right of player
+    private bool onWallToLeft;              // On Wall flag for when a wall is to the left of player
+    public float maxWallRunTime;            // Maximum time player's gravity is counteracted while wall-running
+    private float wallRunTime;              // Time player has left to wall run before gravity takes hold
+    public float wallRunBoost;              // Amount of time a wall-run will send the player upwards, also boosts the upward accelaration of the rest of the wall-run
 
 
     // Area for Keybinds so we can apply settings from a settings menu
@@ -82,9 +88,9 @@ public class PlayerMovement : MonoBehaviour
 
         readyToJump = true;                     // Allow the player to start with jump ready
 
-        onWall = false;                         // Initilize whether player is on a wall
-
         startYscale = transform.localScale.y;   // Grab the initial scale of the player to reset after crouching
+
+        wallRunTime = maxWallRunTime;
 
         // Get the child from position 0 (the body object)
         body = transform.GetChild(0);
@@ -121,12 +127,8 @@ public class PlayerMovement : MonoBehaviour
              */
             groundCheckArea = new Vector3(bodyWidth / 2 - .01f, groundDistance, bodyLength / 2 - .01f);
 
-            /*
-             * Like groundCheckArea, this box extends from the player's feet, but it checks for walls to the right or left of them,
-             * thus, bodyWidth is incrased to more than bodyWidth/2, to widen the box, and other values are kept similar so wall detection
-             * feels tied to the playr's feet (like how grounded is), minor offsetting is done via wallCheckPadding variable
-             */
-            wallCheckArea = new Vector3(bodyWidth + wallCheckPadding, groundDistance, bodyLength / 2 + wallCheckPadding);
+            // Offset the center of both CheckSpheres for walls to be slightly within the player's right and left sides
+            wallCheckOffset = bodyWidth / 2 - .01f;
         }
     }
 
@@ -136,9 +138,11 @@ public class PlayerMovement : MonoBehaviour
         // to detect if the player is grounded
         grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
 
-        // Checks in a box around groundCheck (Player's feet) for objects with whatIsWall layer
-        onWall = Physics.CheckBox(groundCheck.position, wallCheckArea, orientation.rotation, whatIsWall);
-        Debug.Log("onWall: " + onWall);
+        // Checks for walls with 2 spheres, either return true if a wall is within wallCheckRadius from player's right or left side
+        onWallToRight = Physics.CheckSphere((groundCheck.position + (orientation.rotation * (wallCheckOffset * Vector3.right))), 
+            wallCheckRadius, whatIsWall);
+        onWallToLeft = Physics.CheckSphere((groundCheck.position + (orientation.rotation * (wallCheckOffset * Vector3.left))),
+            wallCheckRadius, whatIsWall);
 
         /*
          * Order Reasoning:
@@ -341,6 +345,20 @@ public class PlayerMovement : MonoBehaviour
         {
             // Applies acceleration with airMultiplier
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
+
+            // Checks if player is attempting to wall-run (airbourne and on a wall)
+            if (OnWall())
+            {
+                // Decrement time player is allowed to wall-run for 
+                wallRunTime -= Time.fixedDeltaTime;
+
+                // While wall-running
+                if (wallRunTime > 0)
+                {
+                    // Add an upward accelaration that sends player upwards (with wallRunBoost) then decays over the course of maxWallRunTime
+                    rigidBody.AddForce(-(((wallRunTime + wallRunBoost) / maxWallRunTime) * Physics.gravity), ForceMode.Acceleration);
+                }
+            }
         }
 
         // Stops using gravity if you are on a slope to prevent the player from sliding down the ramp when standing still
@@ -423,6 +441,12 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 GetSlopeMovementDirection()
     {
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
+    }
+
+    // Return true if a wall is to the player's right or left, false otherwise
+    private bool OnWall()
+    {
+        return onWallToRight || onWallToLeft;
     }
 
 }
