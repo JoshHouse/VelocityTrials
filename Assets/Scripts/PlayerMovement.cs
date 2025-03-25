@@ -346,19 +346,21 @@ public class PlayerMovement : MonoBehaviour
             // Applies acceleration with airMultiplier
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
 
-            // Checks if player is attempting to wall-run (airbourne and on a wall)
-            if (OnWall())
+            // Checks if player is attempting to wall-run (airbourne and on a wall) and can wall-run (timer has not passed zero)
+            if (OnWall() && wallRunTime > 0)
             {
                 // Decrement time player is allowed to wall-run for 
                 wallRunTime -= Time.fixedDeltaTime;
 
-                // While wall-running
-                if (wallRunTime > 0)
-                {
-                    // Add an upward accelaration that sends player upwards (with wallRunBoost) then decays over the course of maxWallRunTime
-                    rigidBody.AddForce(-(((wallRunTime + wallRunBoost) / maxWallRunTime) * Physics.gravity), ForceMode.Acceleration);
-                }
+                // Add an upward accelaration that sends player upwards (with wallRunBoost) then decays over the course of maxWallRunTime
+                rigidBody.AddForce(-(((wallRunTime + wallRunBoost) / maxWallRunTime) * Physics.gravity), ForceMode.Acceleration);
             }
+        }
+
+        // If Player isn't on any wall, reset wallRunTime 
+        if (!OnWall())
+        {
+            wallRunTime = maxWallRunTime;
         }
 
         // Stops using gravity if you are on a slope to prevent the player from sliding down the ramp when standing still

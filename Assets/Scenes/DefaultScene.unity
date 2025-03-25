@@ -1213,7 +1213,19 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1576543690}
     - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
+      propertyPath: wallRunBoost
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
       propertyPath: groundDistance
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
+      propertyPath: maxWallRunTime
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
+      propertyPath: wallCheckRadius
       value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
