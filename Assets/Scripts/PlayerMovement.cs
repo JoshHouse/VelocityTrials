@@ -1,9 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class PlayerMovement : MonoBehaviour
 {
+    /*
+     * 
+     * --------------- Variable Initialization ---------------
+     * 
+     */
+
     [Header("Initialization")]
     public Transform orientation;           // Empty object attached to player to get their rotation for movement application based on rotation
     public MovementState movementState;     // Current state of the player based on enumeration below
@@ -30,7 +37,12 @@ public class PlayerMovement : MonoBehaviour
     private float moveSpeed;                // Max movement speed changed dynamically based on player's movement state
     public float walkSpeed = 7f;            // Max walking speed
     public float sprintSpeed = 10f;         // Max Sprinting speed
-    public float groundDrag = 5f;           // Drag While Grounded
+    public float groundDrag = 2f;           // Drag While Grounded
+
+    [Header("UI Elements")]
+    public TextMeshProUGUI speedText;       // Speed text UI element
+    public TextMeshProUGUI stateText;       // State text UI element
+    public TextMeshProUGUI grappleCountText;// Grapple count text UI element
 
 
     [Header("Jumping")]
@@ -63,7 +75,7 @@ public class PlayerMovement : MonoBehaviour
     private float distanceFromPoint;        // Distance from fire point to the grapple location
     private Quaternion desiredRotation;     // Variable to store what the desired rotation of the arm should be
     private bool isGrappling;               // Flag for whether the player is grappling
-    private int grappleCount;
+    private int grappleCount;               // Count of current grapples used while in the air
 
     [Header("Ground Check")]
     public Transform groundCheck;           // Empty object attached to player to check for the ground beneath them
@@ -77,8 +89,7 @@ public class PlayerMovement : MonoBehaviour
     public float maxSlopeAngle = 40f;       // Maximum slope the player can walk up
     private RaycastHit slopeHit;            // Detected slope that the player hit
     private bool jumpOnSlope;               // Flag Variable used to allow jumping on ramps
-    private bool enteredSlope;             // Flag to detect when the player is entering a slope
-    private bool exitingSlope;              // Flag to detect when the player is exiting a slope
+    private bool enteredSlope;              // Flag to detect when the player is entering a slope
 
 
     // Area for Keybinds so we can apply settings from a settings menu
@@ -89,18 +100,26 @@ public class PlayerMovement : MonoBehaviour
     public KeyCode grappleKey = KeyCode.Mouse0;         // Grapple keybind
 
 
+
+    /*
+     * 
+     * --------------- On Start ---------------
+     * 
+     */
+
     private void Start()
     {
         rigidBody = GetComponent<Rigidbody>();                  // Get Player's Rigidbody component
         rigidBody.freezeRotation = true;                        // Freeze RigidBody's rotation
+        readyToJump = true;                                     // Allow the player to start with jump ready
+        enteredSlope = false;                                   // Start the player not on a slope
+        startYscale = transform.localScale.y;                   // Grab the initial scale of the player to reset after crouching
+
         lineRenderer = armGrapple.GetComponent<LineRenderer>(); // Get the line renderer for rope rendering when grappling
+        isGrappling = false;                                    // Initialize isGrappling to false when the game starts
+        grappleCount = 0;                                       // Initialize the amount of grapples used in the air to 0
 
-        isGrappling = false;                    // Initialize isGrappling to false when the game starts
-        grappleCount = 0;
-        readyToJump = true;                     // Allow the player to start with jump ready
-        enteredSlope = false;
-
-        startYscale = transform.localScale.y;   // Grab the initial scale of the player to reset after crouching
+        
 
         // Get the child from position 0 (the body object)
         body = transform.GetChild(0);
@@ -140,6 +159,13 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
+
+    /*
+     * 
+     * --------------- Update (Called once per frame) ---------------
+     * 
+     */
+
     private void Update() {
         // Checks in a box around the groundCheck empty object for objects with whatIsGround layer title
         // to detect if the player is grounded
@@ -154,8 +180,6 @@ public class PlayerMovement : MonoBehaviour
          * - StateHandler():
          *      - Based on the User's state, it sets the users max speed based on crouching, walking, or sprinting
          *      - Handling is Different based on grounded or airborne. Max Speed Stays the same but crouch sizing is different
-         * - SpeedControl():
-         *      - Encorporates the player's max speed and prevents infinite acceleration
          */
         // Gets the user's input
         UserInput();
@@ -165,7 +189,7 @@ public class PlayerMovement : MonoBehaviour
         RotateArmOnGrapple();
 
         // Applies ground drag if grounded
-        if(grounded)
+        if(grounded && !isGrappling)
         {
             rigidBody.drag = groundDrag;
         }
@@ -174,7 +198,20 @@ public class PlayerMovement : MonoBehaviour
         {
             rigidBody.drag = 0;
         }
+
+        // Update UI elements
+        UpdateUI();
     }
+
+
+
+    /*
+     * 
+     * --------------- Late and fixed update ---------------
+     * - LateUpdate guarenteed to call after standard update
+     * - FixedUpdate called based on delta time (not frame dependent)
+     * 
+     */
 
     private void LateUpdate()
     {
@@ -187,6 +224,34 @@ public class PlayerMovement : MonoBehaviour
         MovePlayer();
     }
 
+    /*
+     * 
+     * --------------- UI functions ---------------
+     * 
+     */
+
+    // Function to update text elements
+    private void UpdateUI()
+    {
+        // Get horizontal speed excluding the y axis
+        Vector3 horizontalVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+
+        // Use System.Math to round the numbers to 2 decimal places
+        float roundedHorizontalSpeed = (float)System.Math.Round(horizontalVelocity.magnitude, 2);
+        float roundedTotalSpeed = (float)System.Math.Round(rigidBody.velocity.magnitude, 2);
+
+        // Update the text elements
+        speedText.text = "Horizontal Speed: " + roundedHorizontalSpeed.ToString() + "\nSpeed: " + roundedTotalSpeed.ToString();
+        stateText.text = "Movement State: " + movementState.ToString();
+        grappleCountText.text = "Grapples Left: " + (grapplesAllowed - grappleCount).ToString();
+    }
+
+    /*
+     * 
+     * --------------- User Input ---------------
+     * 
+     */
+
     // Function that tracks user input
     private void UserInput()
     {
@@ -195,22 +260,39 @@ public class PlayerMovement : MonoBehaviour
         verticalInput = Input.GetAxisRaw("Vertical");
     }
 
+
+
+    /*
+     * 
+     * --------------- State Handler ---------------
+     * - For handling state changes and calling state change functions
+     * 
+     */
+
     // Function to handle movement state changes
     private void StateHandler()
     {
-        // Grounded State Handler. All If statements assume you are grounded
-        if (grounded)
+        // If grappling, movement state stays as grappling
+        if (isGrappling)
         {
+            movementState = MovementState.grappling;
+        }
+        // Grounded State Handler. All If statements assume you are grounded
+        else if (grounded)
+        {
+            // Resets doubleJump if the player touches the groud
             if (!doubleJumpReady)
             {
                 doubleJumpReady = true;
             }
 
-            if (grappleCount >= grapplesAllowed)
+            // Resets grapple count if the player touches the ground
+            if (grappleCount > 0)
             {
                 grappleCount = 0;
             }
 
+            // Detects crouch key press
             if (Input.GetKeyUp(crouchKey))
             {
                 // Resets the player's Y scale to their default scale
@@ -253,6 +335,9 @@ public class PlayerMovement : MonoBehaviour
             {
                 movementState = MovementState.crouching;
                 moveSpeed = crouchSpeed;
+
+                // Prevents the groundCheck from still detecting the player as grounded right when the player jumps
+                // and resetting the scale again as the player jumps
                 if (readyToJump)
                 {
                     transform.localScale = new Vector3(transform.localScale.x, crouchYscale, transform.localScale.z);
@@ -265,14 +350,14 @@ public class PlayerMovement : MonoBehaviour
                 moveSpeed = walkSpeed;
             }
         }
-        // If grappling, movement state stays as grappling
-        else if (isGrappling)
-        {
-            movementState = MovementState.grappling;
-        }
         // Airborne State Handler. All if statements assume you are airborne and not grappling
         else
         {
+            // ForceStopCrouch when airborne
+            if (Input.GetKey(crouchKey))
+            {
+                ForceStopCrouch();
+            }
 
             // moveSpeed set to sprint speed while airborne to allow for faster air movement when sprinting (Takes Precidence over crouching)
             if (Input.GetKey(sprintKey))
@@ -301,7 +386,6 @@ public class PlayerMovement : MonoBehaviour
                 // Jump function
                 Jump();
             }
-
 
         }
 
@@ -342,6 +426,15 @@ public class PlayerMovement : MonoBehaviour
  
     }
 
+
+
+    /*
+     * 
+     * --------------- Delta-Time Move Player ---------------
+     * - Called in fixed update (delta-time automatically encorporated)
+     * 
+     */
+
     // Function that moves the player
     private void MovePlayer()
     {
@@ -370,12 +463,32 @@ public class PlayerMovement : MonoBehaviour
                 rigidBody.AddForce(Vector3.down * 80f, ForceMode.Force);
             }
 
-            // Get the current horizontal velocity (ignoring Y-axis)
+            // Get the current velocity on x, y and z axis since the player is on a slope
             Vector3 slopeVelocity = new Vector3(rigidBody.velocity.x, rigidBody.velocity.y, rigidBody.velocity.z);
+            // Get the current move speed
             float currentSpeed = slopeVelocity.magnitude;
 
             // Check the dot product to determine if the player is trying to change directions
             float dot = Vector3.Dot(slopeVelocity.normalized, GetSlopeMovementDirection());
+
+            // Lerp change in velocity direction when move direction isn't in the opposite direction
+            if (dot >= 0)
+            {
+                // Normalize move direction but retain current speed
+                Vector3 desiredVelocity = GetSlopeMovementDirection() * currentSpeed;
+
+                // Lerp between current and desired velocity to allow adjustments (Lerping is a smooth transition between two states)
+                Vector3 adjustedVelocity = Vector3.Lerp(slopeVelocity, desiredVelocity, 0.1f);
+
+                // Apply the adjusted velocity
+                rigidBody.velocity = new Vector3(adjustedVelocity.x, adjustedVelocity.y, adjustedVelocity.z);
+
+                // Get the current adjusted velocity
+                Vector3 adjustedSlopeVelocity = new Vector3(rigidBody.velocity.x, rigidBody.velocity.y, rigidBody.velocity.z);
+
+                // Get the updated current speed after changes
+                currentSpeed = adjustedSlopeVelocity.magnitude;
+            }
 
             // If below moveSpeed OR trying to change directions, allow force to be applied
             if (currentSpeed < moveSpeed || dot < 0)
@@ -383,8 +496,23 @@ public class PlayerMovement : MonoBehaviour
                 rigidBody.AddForce(GetSlopeMovementDirection() * moveSpeed * 20f, ForceMode.Force);
             }
         }
-        else if (!OnSlope() && enteredSlope)
+        // Checks if the player is no longer on the slope but the enteredSlope flag is still active (not from a jump)
+        // If so, it transfers their velocity onto a horizontal axis
+        else if (!OnSlope() && enteredSlope && !jumpOnSlope)
         {
+            // Get the current velocity
+            Vector3 currentVelocity = rigidBody.velocity;
+
+            // Remove the vertical (Y-axis) component
+            Vector3 horizontalVelocity = new Vector3(currentVelocity.x, 0f, currentVelocity.z);
+
+            // Preserve the original speed
+            float preservedSpeed = currentVelocity.magnitude;
+
+            // Normalize the horizontal velocity and apply the preserved speed
+            rigidBody.velocity = horizontalVelocity.normalized * preservedSpeed;
+
+            // Reset the enteredSlope flag
             enteredSlope = false;
         }
 
@@ -392,10 +520,30 @@ public class PlayerMovement : MonoBehaviour
         {
             // Get the current horizontal velocity (ignoring Y-axis)
             Vector3 flatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+            // Get the current move speed
             float currentSpeed = flatVelocity.magnitude;
 
             // Check the dot product to determine if the player is trying to change directions
             float dot = Vector3.Dot(flatVelocity.normalized, moveDirection.normalized);
+
+            // Lerp velocity direction change if direction is in the direction the player is moving
+            if (dot >= 0)
+            {
+                // Normalize move direction but retain current speed
+                Vector3 desiredVelocity = moveDirection.normalized * currentSpeed;
+
+                // Lerp between current and desired velocity to allow adjustments
+                Vector3 adjustedVelocity = Vector3.Lerp(flatVelocity, desiredVelocity, 0.1f);
+
+                // Apply the adjusted velocity while maintaining the y velocity
+                rigidBody.velocity = new Vector3(adjustedVelocity.x, rigidBody.velocity.y, adjustedVelocity.z);
+
+                // Get the adjusted velocity on the x and z axis
+                Vector3 adjustedFlatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+
+                // Get the updated current speed
+                currentSpeed = adjustedFlatVelocity.magnitude;
+            }
 
             // If below moveSpeed OR trying to change directions, allow force to be applied
             if (currentSpeed < moveSpeed || dot < 0)
@@ -408,10 +556,31 @@ public class PlayerMovement : MonoBehaviour
         {
             // Get the velocity on the x and z axis
             Vector3 flatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+            // Get the current move speed
             float currentSpeed = flatVelocity.magnitude;
 
             // Check the dot product to determine if the player is trying to change directions
             float dot = Vector3.Dot(flatVelocity.normalized, moveDirection.normalized);
+
+            // Lerp velocity adjustment change if the player is trying to move in the direction they are already moving
+            if (dot >= 0)
+            {
+                // Normalize moveDirection but retain current speed
+                Vector3 desiredVelocity = moveDirection.normalized * currentSpeed;
+
+                // Interpolate between current and desired velocity to allow adjustments
+                Vector3 adjustedVelocity = Vector3.Lerp(flatVelocity, desiredVelocity, 0.1f);
+
+                // Apply the adjusted velocity while maintaining the y velocity
+                rigidBody.velocity = new Vector3(adjustedVelocity.x, rigidBody.velocity.y, adjustedVelocity.z);
+
+                // Get the velocity on the x and z axis
+                Vector3 adjustedFlatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+
+                // Get the updated move speed
+                currentSpeed = adjustedFlatVelocity.magnitude;
+            }
+            
 
             // Allow movement if it's opposing velocity OR if velocity is below moveSpeed
             if (dot < 0 || currentSpeed < moveSpeed)
@@ -426,37 +595,13 @@ public class PlayerMovement : MonoBehaviour
         rigidBody.useGravity = !OnSlope();
     }
 
-    
 
-    // Function to stop crouch resizing even if crouch is being pressed
-    private void ForceStopCrouch()
-    {
-        // Resets the players scale to their default scale
-        transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
-    }
 
-    // Function that applies force upward for jump
-    private void Jump()
-    {
-        // Flag to stop downward force when the player is attempting to jump on a ramp
-        jumpOnSlope = true;
-
-        // Resets the y velocity so jump velocity is consistant (not added to preexisting vertical velocity positive or negative)
-        rigidBody.velocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
-
-        // Adds force upward multiplied by the jump force
-        rigidBody.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-    }
-
-    // Function that resets readyToJump for Invoke call on jump cooldown and slope jump flag
-    private void ResetJump()
-    {
-        // Resets Jump Flag
-        readyToJump = true;
-
-        // Jumping on slope flag
-        jumpOnSlope = false;
-    }
+    /*
+     * 
+     * --------------- Slope Movement Functions ---------------
+     * 
+     */
 
     // Function that detects whether the player is on a ground object that is sloped
     private bool OnSlope()
@@ -502,13 +647,52 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 GetSlopeMovementDirection()
     {
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
-    }   
+    }
 
     // Function to get the slope angle for modifying player velocity when entering a slope
     private float GetSlopeAngle()
     {
         return Vector3.Angle(Vector3.up, slopeHit.normal);
-    } 
+    }
+
+
+
+    /*
+     * 
+     * --------------- Jump Functionality ---------------
+     * 
+     */
+
+    // Function that applies force upward for jump
+    private void Jump()
+    {
+        // Flag to stop downward force when the player is attempting to jump on a ramp
+        jumpOnSlope = true;
+
+        // Resets the y velocity so jump velocity is consistant (not added to preexisting vertical velocity positive or negative)
+        rigidBody.velocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
+
+        // Adds force upward multiplied by the jump force
+        rigidBody.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+    }
+
+    // Function that resets readyToJump for Invoke call on jump cooldown and slope jump flag
+    private void ResetJump()
+    {
+        // Resets Jump Flag
+        readyToJump = true;
+
+        // Jumping on slope flag
+        jumpOnSlope = false;
+    }
+
+    
+
+    /*
+     * 
+     * --------------- Grapple Functionality ---------------
+     * 
+     */
 
     // Function to initiate a grapple
     private void StartGrapple()
@@ -585,5 +769,18 @@ public class PlayerMovement : MonoBehaviour
 
         // Lerp for a smooth transition from the current rotation to the desired rotation
         armGrapple.rotation = Quaternion.Lerp(armGrapple.rotation, desiredRotation, Time.deltaTime * rotationSpeed);
+    }
+
+    /*
+     * 
+     * --------------- Helper Functions ---------------
+     * 
+     */
+
+    // Function to stop crouch resizing even if crouch is being pressed
+    private void ForceStopCrouch()
+    {
+        // Resets the players scale to their default scale
+        transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
     }
 }
