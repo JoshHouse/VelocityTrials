@@ -957,6 +957,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7812680945247674416, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
   m_PrefabInstance: {fileID: 8155843162825127245}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1935703169 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
+  m_PrefabInstance: {fileID: 8155843162825127245}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f66083fc7d0014f5f810056257719d55, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2061668828
 GameObject:
   m_ObjectHideFlags: 0
@@ -1135,6 +1146,14 @@ PrefabInstance:
       propertyPath: orientation
       value: 
       objectReference: {fileID: 574312884}
+    - target: {fileID: 6580941486514894237, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
+      propertyPath: playerMoveScript
+      value: 
+      objectReference: {fileID: 1935703169}
+    - target: {fileID: 6580941486514894237, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
+      propertyPath: wallRunLeanAngle
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 6970200725290545156, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
       propertyPath: cameraPosition
       value: 
@@ -1214,7 +1233,7 @@ PrefabInstance:
       objectReference: {fileID: 1576543690}
     - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
       propertyPath: wallRunBoost
-      value: 0.5
+      value: 1.25
       objectReference: {fileID: 0}
     - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
       propertyPath: groundDistance

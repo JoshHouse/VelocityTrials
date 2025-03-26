@@ -63,8 +63,8 @@ public class PlayerMovement : MonoBehaviour
 
 
     [Header("Wall Running")]
-    private float wallCheckOffset;          // Offset to added to left and right of groundCheck to check for walls (set to be edge of player's width)
     public float wallCheckRadius;           // Radius of CheckSpheres representing the distance away from player's sides that will be checked for walls
+    private float wallCheckOffset;          // Offset to added to left and right of groundCheck to check for walls (set to be edge of player's width)
     public LayerMask whatIsWall;            // Layer assigned to wall objects for wallrunning/walljumping
     private bool onWallToRight;             // On Wall flag for when a wall is to the right of player
     private bool onWallToLeft;              // On Wall flag for when a wall is to the left of player
@@ -90,7 +90,7 @@ public class PlayerMovement : MonoBehaviour
 
         startYscale = transform.localScale.y;   // Grab the initial scale of the player to reset after crouching
 
-        wallRunTime = maxWallRunTime;
+        wallRunTime = maxWallRunTime;           // Allow the player to start with wall-running ready
 
         // Get the child from position 0 (the body object)
         body = transform.GetChild(0);
@@ -138,10 +138,16 @@ public class PlayerMovement : MonoBehaviour
         // to detect if the player is grounded
         grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
 
-        // Checks for walls with 2 spheres, either return true if a wall is within wallCheckRadius from player's right or left side
-        onWallToRight = Physics.CheckSphere((groundCheck.position + (orientation.rotation * (wallCheckOffset * Vector3.right))), 
+        // Checks for walls with 2 spheres, either return true if a wall is within wallCheckRadius from the center of the player's right or left side
+        // (groundCheck.position + (wallCheckRadius * Vector3.up) = position in the center of player's feet wallCheckOffset units above the ground
+        //      Ensures walls aren't detected below player's feet
+        // (orientation.rotation * (wallCheckOffset * Vector3.[right or left])) = offset position to player's right or left (hence the use of orientation) 
+        //      Ensures spheres don't completely overlap and can tell what side player can wall-run on
+        onWallToRight = Physics.CheckSphere((groundCheck.position + (wallCheckRadius * Vector3.up) 
+            + (orientation.rotation * (wallCheckOffset * Vector3.right))), 
             wallCheckRadius, whatIsWall);
-        onWallToLeft = Physics.CheckSphere((groundCheck.position + (orientation.rotation * (wallCheckOffset * Vector3.left))),
+        onWallToLeft = Physics.CheckSphere((groundCheck.position + (wallCheckRadius * Vector3.up)
+            + (orientation.rotation * (wallCheckOffset * Vector3.left))),
             wallCheckRadius, whatIsWall);
 
         /*
@@ -449,6 +455,41 @@ public class PlayerMovement : MonoBehaviour
     private bool OnWall()
     {
         return onWallToRight || onWallToLeft;
+    }
+
+    // Function to signal player's current wall running state, and since a wall-run's acceleration decays, 
+    // linear interpolation is used to measure where in a wall-run the player is (with more weight given to the start):
+    // During the first half of a wall-run, the return value increases linearly for 1/8th of maxWallRunTime, until it reaches 1,
+    // it stays 1 for 1/4th of maxWallRunTime, then decreases linearly for 1/8th of maxWallRunTime, until it reaches 0,
+    // it stays 0 for the latter 1/2 of maxWallRunTime
+    public float WallRunningState()
+    {
+        // If airborne and has wallRunTime left
+        if (!grounded && wallRunTime > 0)
+        {
+            float x = Mathf.Lerp(0, 2, wallRunTime / maxWallRunTime);
+
+            // Wall-running on a wall to the right takes precedence, return 1
+            if (onWallToRight)
+            {
+                return Mathf.Max((Mathf.Min((-Mathf.Abs(-4f * x + 6f) + 2f), 1f)), 0f);
+            }
+            // Wall-running on a wall to the left, return -1
+            else if (onWallToLeft)
+            {
+                return -Mathf.Max((Mathf.Min((-Mathf.Abs(-4f * x + 6f) + 2f), 1f)), 0f);
+            }
+            // Airborne, but not wall-running, return 0
+            else
+            {
+                return 0;
+            }
+        }
+        // Grounded, can't wall-run, return 0
+        else
+        {
+            return 0;
+        }
     }
 
 }

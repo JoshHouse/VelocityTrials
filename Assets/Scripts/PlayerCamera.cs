@@ -14,7 +14,13 @@ public class PlayerCamera : MonoBehaviour
     // Rotation variables to track the rotation the camera should be in
     private float rotationX;
     private float rotationY;
+    private float rotationZ;
 
+    // Reference to player movement script
+    public PlayerMovement playerMoveScript;
+
+    // Rotation for player to lean on z-axis when wall-running
+    public float wallRunLeanAngle;
 
     void Start()
     {
@@ -36,8 +42,11 @@ public class PlayerCamera : MonoBehaviour
         // Locks the x rotation so you cant look up greater than 90 degrees or down less than -90 degrees
         rotationX = Mathf.Clamp(rotationX, -90f, 90f);
 
+        // Rotates camera along Z-axis to lean right or left depending on WallRunningState()
+        rotationZ = playerMoveScript.WallRunningState() * wallRunLeanAngle;
+
         // Rotates the camera based on the calculated rotation
-        transform.rotation = Quaternion.Euler(rotationX, rotationY, 0);
+        transform.rotation = Quaternion.Euler(rotationX, rotationY, rotationZ);
         // Rotates the orientation attached to the player object (only on the y axis, not vertically)
         orientation.rotation = Quaternion.Euler(0, rotationY, 0);
     }
