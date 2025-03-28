@@ -22,12 +22,6 @@ public class PlayerCamera : MonoBehaviour
     // Rotation for player to lean on z-axis when wall-running
     public float wallRunLeanAngle;
 
-    // Reference to player movement script
-    public PlayerMovement playerMoveScript;
-
-    // Rotation for player to lean on z-axis when wall-running
-    public float wallRunLeanAngle;
-
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;   // Locks the cursor to the center of the screen

@@ -20,6 +20,7 @@ public class PlayerMovement : MonoBehaviour
         sprinting,
         crouching,
         airborne,
+        wallrunning,
         grappling
     }
 
@@ -34,10 +35,10 @@ public class PlayerMovement : MonoBehaviour
     private float bodyHeight;               // Gets the height of the body after rendering from the renderer
 
     [Header("Movement")]
-    private float moveSpeed;                // Max movement speed changed dynamically based on player's movement state
     public float walkSpeed = 7f;            // Max walking speed
     public float sprintSpeed = 10f;         // Max Sprinting speed
     public float groundDrag = 2f;           // Drag While Grounded
+    private float moveSpeed;                // Max movement speed changed dynamically based on player's movement state
 
     [Header("UI Elements")]
     public TextMeshProUGUI speedText;       // Speed text UI element
@@ -94,14 +95,15 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Wall Running")]
     public float wallCheckRadius;           // Radius of CheckSpheres representing the distance away from player's sides that will be checked for walls
-    private float wallCheckOffset;          // Offset to added to left and right of groundCheck to check for walls (set to be edge of player's width)
     public LayerMask whatIsWall;            // Layer assigned to wall objects for wallrunning/walljumping
+    public float maxWallRunTime;            // Maximum time player's gravity is counteracted while wall-running
+    public float wallRunBoost;              // Amount of time a wall-run will send the player upwards, also boosts the upward accelaration of the rest of the wall-run
+    private float wallCheckOffset;          // Offset to added to left and right of groundCheck to check for walls (set to be edge of player's width)
     private bool onWallToRight;             // On Wall flag for when a wall is to the right of player
     private bool onWallToLeft;              // On Wall flag for when a wall is to the left of player
-    public float maxWallRunTime;            // Maximum time player's gravity is counteracted while wall-running
     private float wallRunTime;              // Time player has left to wall run before gravity takes hold
-    public float wallRunBoost;              // Amount of time a wall-run will send the player upwards, also boosts the upward accelaration of the rest of the wall-run
-
+    private bool isWallRunning;             // Whether the player is wall-running or not
+    private RaycastHit wallHit;             // Raycast hit that player is wall-running on for momentum-preserving calculations
 
     // Area for Keybinds so we can apply settings from a settings menu
     [Header("Keybinds")]
@@ -406,6 +408,13 @@ public class PlayerMovement : MonoBehaviour
                 moveSpeed = walkSpeed;
             }
 
+            // If on a wall, player wall-runs
+            if (OnWall())
+            {
+                movementState = MovementState.wallrunning;
+                StartWallRunning();
+            }
+
             if (Input.GetKey(jumpKey) && doubleJumpReady && readyToJump)
             {
                 // jump flag (also prevents crouching since you are in the process of jumping)
@@ -413,6 +422,12 @@ public class PlayerMovement : MonoBehaviour
 
                 // Jump function
                 Jump();
+            }
+
+            // Stop wall-running if player jumps or becomes grounded
+            if (isWallRunning && (Input.GetKeyDown(jumpKey)|| grounded))
+            {
+                StopWallRunning();
             }
 
         }
@@ -543,8 +558,7 @@ public class PlayerMovement : MonoBehaviour
             // Reset the enteredSlope flag
             enteredSlope = false;
         }
-
-        if(grounded)
+        else if (grounded)
         {
             // Get the current horizontal velocity (ignoring Y-axis)
             Vector3 flatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
@@ -584,58 +598,7 @@ public class PlayerMovement : MonoBehaviour
         {
             // Applies acceleration with airMultiplier
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
-
-            // Checks if player is attempting to wall-run (airbourne and on a wall) and can wall-run (timer has not passed zero)
-            if (OnWall() && wallRunTime > 0)
-            {
-                // Decrement time player is allowed to wall-run for 
-                wallRunTime -= Time.fixedDeltaTime;
-
-                // Add an upward accelaration that sends player upwards (with wallRunBoost) then decays over the course of maxWallRunTime
-                rigidBody.AddForce(-(((wallRunTime + wallRunBoost) / maxWallRunTime) * Physics.gravity), ForceMode.Acceleration);
-            }
-        }
-
-        // If Player isn't on any wall, reset wallRunTime 
-        if (!OnWall())
-        {
-            wallRunTime = maxWallRunTime;
-            // Get the velocity on the x and z axis
-            Vector3 flatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
-            // Get the current move speed
-            float currentSpeed = flatVelocity.magnitude;
-
-            // Check the dot product to determine if the player is trying to change directions
-            float dot = Vector3.Dot(flatVelocity.normalized, moveDirection.normalized);
-
-            // Lerp velocity adjustment change if the player is trying to move in the direction they are already moving
-            if (dot >= 0)
-            {
-                // Normalize moveDirection but retain current speed
-                Vector3 desiredVelocity = moveDirection.normalized * currentSpeed;
-
-                // Interpolate between current and desired velocity to allow adjustments
-                Vector3 adjustedVelocity = Vector3.Lerp(flatVelocity, desiredVelocity, 0.1f);
-
-                // Apply the adjusted velocity while maintaining the y velocity
-                rigidBody.velocity = new Vector3(adjustedVelocity.x, rigidBody.velocity.y, adjustedVelocity.z);
-
-                // Get the velocity on the x and z axis
-                Vector3 adjustedFlatVelocity = new Vector3(rigidBody.velocity.x, 0f, rigidBody.velocity.z);
-
-                // Get the updated move speed
-                currentSpeed = adjustedFlatVelocity.magnitude;
-            }
-            
-
-            // Allow movement if it's opposing velocity OR if velocity is below moveSpeed
-            if (dot < 0 || currentSpeed < moveSpeed)
-            {
-                // Add force in the given direction multiplied by the air multiplier
-                rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
-            }
-            
-        }
+        }           
 
         // Stops using gravity if you are on a slope to prevent the player from sliding down the ramp when standing still
         rigidBody.useGravity = !OnSlope();
@@ -695,10 +658,78 @@ public class PlayerMovement : MonoBehaviour
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
 
+
+
+    /*
+     * 
+     * --------------- Wall-Running Functionality ---------------
+     * 
+     */
+
+    private void StartWallRunning()
+    { 
+        // Cause player is avoid gravity while wall-running, set flag to true
+        isWallRunning = true;
+        rigidBody.useGravity = false;
+
+        // Reset player's double jumps
+        doubleJumpReady = true;
+
+        // Checks if player is able to keep wall-running
+        if (wallRunTime > 0)
+        {
+            // Decrement time player is allowed to wall-run for 
+            wallRunTime -= Time.fixedDeltaTime;
+        }
+        else 
+        {
+            // If wallRunTime expires, end wall-run
+            StopWallRunning();
+        }
+    }
+
+    private void StopWallRunning()
+    {
+        // Cause player is fall due to gravity, set flag to false
+        isWallRunning = false;
+        rigidBody.useGravity = true;
+
+        // Reset player's wallRunTime if they jumped off the wall or if they became grounded
+        if (Input.GetKeyDown(jumpKey) || grounded)
+        {
+            wallRunTime = maxWallRunTime;
+        }
+    }
+
     // Return true if a wall is to the player's right or left, false otherwise
     private bool OnWall()
     {
         return onWallToRight || onWallToLeft;
+    }
+
+    // Returns 1 if a wall is to the right of the player, -1 if to the left, and 0 if no wall is within the wall checking spheres
+    private int OnWhichWall()
+    {
+        if (onWallToRight)
+        {
+            return 1;
+        }
+        else if (onWallToLeft)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    private Vector3 GetWallRunMovementDirection()
+    {
+        Physics.Raycast((groundCheck.position + wallCheckRadius * Vector3.up),
+           orientation.rotation * (OnWhichWall() * Vector3.right), out wallHit, wallCheckRadius);
+
+        return Vector3.ProjectOnPlane(moveDirection, wallHit.normal).normalized;
     }
 
     // Function to signal player's current wall running state, and since a wall-run's acceleration decays, 
@@ -706,7 +737,7 @@ public class PlayerMovement : MonoBehaviour
     // During the first half of a wall-run, the return value increases linearly for 1/8th of maxWallRunTime, until it reaches 1,
     // it stays 1 for 1/4th of maxWallRunTime, then decreases linearly for 1/8th of maxWallRunTime, until it reaches 0,
     // it stays 0 for the latter 1/2 of maxWallRunTime
-    public float WallRunningState()
+    public float WallRunningCamRotation()
     {
         // If airborne and has wallRunTime left
         if (!grounded && wallRunTime > 0)
