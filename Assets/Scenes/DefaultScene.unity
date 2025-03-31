@@ -1721,7 +1721,7 @@ PrefabInstance:
       objectReference: {fileID: 1411186432}
     - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
       propertyPath: wallRunBoost
-      value: 1.5
+      value: 1.15
       objectReference: {fileID: 0}
     - target: {fileID: 7309200795258967044, guid: d2989f8c0ca674459874b03b642d4eec, type: 3}
       propertyPath: maxWallRunTime

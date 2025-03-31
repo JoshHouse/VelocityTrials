@@ -104,6 +104,7 @@ public class PlayerMovement : MonoBehaviour
     private float wallRunTime;              // Time player has left to wall run before gravity takes hold
     private bool isWallRunning;             // Whether the player is wall-running or not
     private RaycastHit wallHit;             // Raycast hit that player is wall-running on for momentum-preserving calculations
+    private int onWhichWall;                // Stored value of OnWhichWall() function so it is only ran once in DuringWallRunning()
 
     // Area for Keybinds so we can apply settings from a settings menu
     [Header("Keybinds")]
@@ -407,14 +408,20 @@ public class PlayerMovement : MonoBehaviour
                 movementState = MovementState.airborne;
                 moveSpeed = walkSpeed;
             }
-
-            // If on a wall, player wall-runs
-            if (OnWall())
+            
+            // If player is already wall-running, perform DuringWallRunning() functions
+            if (isWallRunning)
+            {
+                DuringWallRunning();
+            }
+            // If on a wall while airbourne and not already wall-running, player begins a new wall-run
+            else if (WallInRadius())
             {
                 movementState = MovementState.wallrunning;
                 StartWallRunning();
             }
 
+            // Double Jump if player is capable of doing so
             if (Input.GetKey(jumpKey) && doubleJumpReady && readyToJump)
             {
                 // jump flag (also prevents crouching since you are in the process of jumping)
@@ -423,16 +430,9 @@ public class PlayerMovement : MonoBehaviour
                 // Jump function
                 Jump();
             }
-
-            // Stop wall-running if player jumps or becomes grounded
-            if (isWallRunning && (Input.GetKeyDown(jumpKey)|| grounded))
-            {
-                StopWallRunning();
-            }
-
         }
 
-        
+        // Grappling
         if (Input.GetKeyDown(grappleKey))
         {
             // If airborne and the player hasnt used all their grapples
@@ -485,7 +485,7 @@ public class PlayerMovement : MonoBehaviour
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
         // Checks if you are on a slope and not attempting to jump
-        if(OnSlope() && !jumpOnSlope)
+        if (OnSlope() && !jumpOnSlope)
         {
             if (!enteredSlope)
             {
@@ -501,7 +501,7 @@ public class PlayerMovement : MonoBehaviour
 
             // Applies a downward focre to avoid physics mechanics causing you to bounce on ramps if you are
             // moving up the ramp
-            if(rigidBody.velocity.y > 0)
+            if (rigidBody.velocity.y > 0)
             {
                 rigidBody.AddForce(Vector3.down * 80f, ForceMode.Force);
             }
@@ -598,10 +598,26 @@ public class PlayerMovement : MonoBehaviour
         {
             // Applies acceleration with airMultiplier
             rigidBody.AddForce(moveDirection.normalized * moveSpeed * 10f * airMultiplier, ForceMode.Force);
-        }           
+        }
+        else if (isWallRunning)
+        {
+            // Get the current speed (preserve movement speed)
+            float speed = rigidBody.velocity.magnitude;
 
-        // Stops using gravity if you are on a slope to prevent the player from sliding down the ramp when standing still
-        rigidBody.useGravity = !OnSlope();
+            // Get the movement direction along the slope
+            Vector3 wallRunDirection = GetWallRunMovementDirection();
+
+            // Apply velocity in the direction of the slope
+            rigidBody.velocity = wallRunDirection * speed;
+        }
+
+        // Guard to prevent slope gravity correction from overriding wall-running  
+        if(!isWallRunning)
+        {
+            // Stops using gravity if you are on a slope to prevent the player from sliding down the ramp when standing still
+            rigidBody.useGravity = !OnSlope();
+        }
+        
     }
 
 
@@ -658,56 +674,90 @@ public class PlayerMovement : MonoBehaviour
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
     }
 
-
-
     /*
      * 
      * --------------- Wall-Running Functionality ---------------
      * 
      */
 
+    // Starts the player's wall-run, removing gravity, boosting moveSpeed, and replenishing double-jumps, also set isWallRunning to true
     private void StartWallRunning()
-    { 
-        // Cause player is avoid gravity while wall-running, set flag to true
+    {
+        // Set wall-run flag to true
         isWallRunning = true;
+
+        // Cause player to avoid gravity while wall-running 
         rigidBody.useGravity = false;
+
+        // Amplify moveSpeed by wallRunBoost
+        moveSpeed *= wallRunBoost;
 
         // Reset player's double jumps
         doubleJumpReady = true;
+    }
 
-        // Checks if player is able to keep wall-running
-        if (wallRunTime > 0)
+    // This function manages wallrunning while it is happening, decrementing wallRunTime
+    // and modifying the wallHit RaycastHit for use in GetWallRunMovementDirection()
+    // Automatically ends wall-runs if player leaves wall, becomes grounded, or runs out of wallRunTime
+    // Note: designed to be called during Update() frames
+    private void DuringWallRunning()
+    {
+        // Decrement time player is allowed to wall-run for 
+        wallRunTime -= Time.deltaTime;
+
+        // If player has wallRunTime left
+        if (wallRunTime > 0f)
         {
-            // Decrement time player is allowed to wall-run for 
-            wallRunTime -= Time.fixedDeltaTime;
+            // Save which wall they are on
+            onWhichWall = OnWhichWall();
+
+            // Checks if player is player is on a wall and uses onWhichWall to cast a ray to the wall
+            if (onWhichWall != 0)
+            {
+                Physics.Raycast((groundCheck.position + wallCheckRadius * Vector3.up),
+                    (orientation.rotation * (onWhichWall * Vector3.right)), out wallHit, wallCheckOffset + wallCheckRadius);
+            }
+            // If not on a wall, end wall-run
+            else
+            {
+                StopWallRunning();
+            }
+
+            // If gorunded, end wall-run
+            if (grounded)
+            {
+                StopWallRunning();
+            }
         }
-        else 
+        // If wallRunTime expires, end wall run
+        else
         {
-            // If wallRunTime expires, end wall-run
             StopWallRunning();
         }
     }
 
+    // End player's wall-run, reseting wallRunTime and getting gravity back to normal, also sets isWallRunning to false
     private void StopWallRunning()
     {
-        // Cause player is fall due to gravity, set flag to false
-        isWallRunning = false;
-        rigidBody.useGravity = true;
+        // Reset wallRunTime
+        wallRunTime = maxWallRunTime;
 
-        // Reset player's wallRunTime if they jumped off the wall or if they became grounded
-        if (Input.GetKeyDown(jumpKey) || grounded)
-        {
-            wallRunTime = maxWallRunTime;
-        }
+        // Set wall-run flag to false
+        isWallRunning = false;
+
+        // Cause player to be affected gravity
+        rigidBody.useGravity = true;
     }
 
     // Return true if a wall is to the player's right or left, false otherwise
-    private bool OnWall()
+    // Essentially a simple bool version of OnWhichWall()
+    private bool WallInRadius()
     {
         return onWallToRight || onWallToLeft;
     }
 
     // Returns 1 if a wall is to the right of the player, -1 if to the left, and 0 if no wall is within the wall checking spheres
+    // Essentially an integer version of WallInRadius() that conveys directional detail
     private int OnWhichWall()
     {
         if (onWallToRight)
@@ -724,11 +774,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    // Returns a normalized Vector3 that is the player's moveDirection projected onto the wall they are running on
     private Vector3 GetWallRunMovementDirection()
     {
-        Physics.Raycast((groundCheck.position + wallCheckRadius * Vector3.up),
-           orientation.rotation * (OnWhichWall() * Vector3.right), out wallHit, wallCheckRadius);
-
         return Vector3.ProjectOnPlane(moveDirection, wallHit.normal).normalized;
     }
 
@@ -739,39 +787,23 @@ public class PlayerMovement : MonoBehaviour
     // it stays 0 for the latter 1/2 of maxWallRunTime
     public float WallRunningCamRotation()
     {
-        // If airborne and has wallRunTime left
-        if (!grounded && wallRunTime > 0)
+        // If wall-running
+        if (isWallRunning)
         {
+            // Compute x value, starting at 2 and decreasing to 0 as wallRunTime decreases
             float x = Mathf.Lerp(0, 2, wallRunTime / maxWallRunTime);
 
-            // Wall-running on a wall to the right takes precedence, return 1
-            if (onWallToRight)
-            {
-                return Mathf.Max((Mathf.Min((-Mathf.Abs(-4f * x + 6f) + 2f), 1f)), 0f);
-            }
-            // Wall-running on a wall to the left, return -1
-            else if (onWallToLeft)
-            {
-                return -Mathf.Max((Mathf.Min((-Mathf.Abs(-4f * x + 6f) + 2f), 1f)), 0f);
-            }
-            // Airborne, but not wall-running, return 0
-            else
-            {
-                return 0;
-            }
+            // Use x value to calculate a proportion smoothly from -1 to 0 (wall is on left) or from 1 to 0 (wall is on right)
+            return OnWhichWall() * Mathf.Max((Mathf.Min((-Mathf.Abs(-4f * x + 6f) + 2f), 1f)), 0f);
         }
-        // Grounded, can't wall-run, return 0
+        // not wall-running, return 0, saving computation
         else
         {
             return 0;
         }
     }
 
-    // Function to get the slope angle for modifying player velocity when entering a slope
-    private float GetSlopeAngle()
-    {
-        return Vector3.Angle(Vector3.up, slopeHit.normal);
-    }
+    
 
 
 
@@ -792,6 +824,12 @@ public class PlayerMovement : MonoBehaviour
 
         // Adds force upward multiplied by the jump force
         rigidBody.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+
+        // If wall-running, also apply jump force opposite to wall
+        if (isWallRunning)
+        {
+            rigidBody.AddForce(-orientation.right * jumpForce * onWhichWall, ForceMode.Impulse);
+        }
     }
 
     // Function that resets readyToJump for Invoke call on jump cooldown and slope jump flag
