@@ -1982,6 +1982,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 617278485550496587, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
+      propertyPath: m_Positions.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1599236759272572376, guid: d0c25c5e01f2f4763b5c4cf758684a09, type: 3}
       propertyPath: player
       value: 
