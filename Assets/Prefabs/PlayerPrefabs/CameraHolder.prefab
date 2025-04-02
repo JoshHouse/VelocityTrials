@@ -40,7 +40,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2559547204556116349}
-  - component: {fileID: 1599236759272572376}
   - component: {fileID: 939240694172188682}
   - component: {fileID: 5015305470261420590}
   - component: {fileID: 617278485550496587}
@@ -67,25 +66,6 @@ Transform:
   - {fileID: 6373177942915898356}
   m_Father: {fileID: 7053518656258203952}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1599236759272572376
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4392808610589728039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f067c2c4057404de5a02113368d7b56b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  whatIsGrapplable:
-    serializedVersion: 2
-    m_Bits: 1048576
-  firePoint: {fileID: 6373177942915898356}
-  camera: {fileID: 7053518656258203952}
-  player: {fileID: 0}
-  maxGrappleDistance: 100
 --- !u!33 &939240694172188682
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -395,3 +375,5 @@ MonoBehaviour:
   sensitivityX: 400
   sensitivityY: 400
   orientation: {fileID: 0}
+  playerMoveScript: {fileID: 0}
+  wallRunLeanAngle: 0

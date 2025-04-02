@@ -189,8 +189,7 @@ public class PlayerMovement : MonoBehaviour
         // Checks in a box around the groundCheck empty object for objects with whatIsGround layer title
         // to detect if the player is grounded
         grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
-        // joint is destroyed when you end grapple so if joint == null, grappling = false
-        isGrappling = grappleJoint != null;
+    
 
         // Checks for walls with 2 spheres, either return true if a wall is within wallCheckRadius from the center of the player's right or left side
         // (groundCheck.position + (wallCheckRadius * Vector3.up) = position in the center of player's feet wallCheckOffset units above the ground
@@ -861,6 +860,9 @@ public class PlayerMovement : MonoBehaviour
             // Check to see whether the hit object's layer is in the whatIsGrapplable layer mask
             if ((whatIsGrapplable.value & (1 << grappleHitObject.layer)) != 0)
             {
+                // Set grappling flag to true
+                isGrappling = true;
+
                 // Get the coordinates of the hit location
                 grapplePoint = grappleHit.point;
 
@@ -892,8 +894,12 @@ public class PlayerMovement : MonoBehaviour
     // Function to end the grapple
     private void EndGrapple()
     {
+        // Set grappling flag to false
+        isGrappling = false;
+
         // Change the line renderer to have no points to draw a line between
         lineRenderer.positionCount = 0;
+
         // Destroy the grapple joint created when initating the grapple
         Destroy(grappleJoint);
     }
