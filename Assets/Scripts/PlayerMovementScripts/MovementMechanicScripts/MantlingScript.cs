@@ -23,4 +23,9 @@ public class MantlingScript : MonoBehaviour
     {
 
     }
+
+    public bool canMantle()
+    {
+        return true;
+    }
 }

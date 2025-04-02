@@ -23,4 +23,9 @@ public class GrapplingScript : MonoBehaviour
     {
 
     }
+
+    public void stopGrapple()
+    {
+
+    }
 }

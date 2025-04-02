@@ -50,6 +50,11 @@ public class PlayerMovementManager : MonoBehaviour
     private Vector3 groundCheckArea;        // Vector3 for the area to check for ground under the player (calculated based on size)
     private bool grounded;                  // Grounded flag
 
+    [HideInInspector]
+    public float horizontalInput;          // Track horizontal key presses (A and D)
+    [HideInInspector]
+    public float verticalInput;            // Track vertical key presses (W and S)
+
 
 
     // Start is called before the first frame update
@@ -102,7 +107,7 @@ public class PlayerMovementManager : MonoBehaviour
         // to detect if the player is grounded
         grounded = Physics.CheckBox(groundCheck.position, groundCheckArea, Quaternion.identity, whatIsGround);
 
-        StateHandler();
+        UserInput();
     }
 
     private void FixedUpdate()
@@ -123,8 +128,10 @@ public class PlayerMovementManager : MonoBehaviour
         }
     }
 
-    private void StateHandler()
+    private void UserInput()
     {
-
+        // Gets horizontal and vertical input (WASD)
+        horizontalInput = Input.GetAxisRaw("Horizontal");
+        verticalInput = Input.GetAxisRaw("Vertical");
     }
 }

@@ -23,4 +23,14 @@ public class WallClimbingScript : MonoBehaviour
     {
 
     }
+
+    public void wallJump()
+    {
+
+    }
+
+    public bool canWallClimb()
+    {
+        return true;
+    }
 }

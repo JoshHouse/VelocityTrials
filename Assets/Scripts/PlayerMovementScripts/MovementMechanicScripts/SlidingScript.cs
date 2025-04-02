@@ -23,4 +23,14 @@ public class SlidingScript : MonoBehaviour
     {
 
     }
+
+    public void stopSlide()
+    {
+
+    }
+
+    public bool canSlide()
+    {
+        return true;
+    }
 }
