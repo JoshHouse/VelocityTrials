@@ -37,7 +37,7 @@ public class GroundedMovementScript : MonoBehaviour
                     Input.GetKeyUp(playerMovementManager.grappleKey))
         {
             grapplingScript.stopGrapple();
-        }
+        }  
 
         else if  (wallClimbingScript.canWallClimb() &&
                     Input.GetKeyDown(playerMovementManager.jumpKey))
