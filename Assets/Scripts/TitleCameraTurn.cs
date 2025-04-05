@@ -1,56 +1,35 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class TitleCameraTurn : MonoBehaviour
 {
 
     public float turnSpeed;
-    private float lim = 20;
-    private bool hitRight;
+    private bool rightHit; 
 
     // Start is called before the first frame update
-    void Start() { 
-        StartCoroutine(CameraTurn());
-        hitRight = false;
+    void Start() {
+        rightHit = false; // Start off turning to the right
     }
 
-    IEnumerator CameraTurn()
+    private void FixedUpdate()
     {
-        float y = 0;
-        while (true)
-        {
-            while (!hitRight)
+        if (rightHit)
+        { // Turns the camera to the left till it is at a point of -20 degrees
+            transform.Rotate(Vector3.down * turnSpeed * Time.deltaTime);
+            if (transform.eulerAngles.y < 340 && transform.eulerAngles.y >= 20)
             {
-                if (transform.eulerAngles.y > lim)
-                {
-                    hitRight = true;
-                }
-                else
-                {
-                    y += turnSpeed * Time.deltaTime;
-                    y = Mathf.Clamp(y, -21, 21);
-                    transform.rotation = Quaternion.Euler(0, y, 0);
-                }
-                yield return null;
+                rightHit = false; // Flip turn angle to right
             }
-
-            while (hitRight) //TODO: Make it so camera can actually loop back to right
-            {
-                if (transform.eulerAngles.y < -lim)
-                {
-                    hitRight = false;
-                }
-                else
-                {
-                    y += -turnSpeed * Time.deltaTime;
-                    y = Mathf.Clamp(y, -21, 21);
-                    transform.rotation = Quaternion.Euler(0, y, 0);
-                }
-                yield return null;
-            }
-            yield return null;
         }
+        else
+        { // Turns the camera to the right till it is at a point of 20 degrees.
+            transform.Rotate(Vector3.up * turnSpeed * Time.deltaTime);
+            if (transform.eulerAngles.y > 20 && transform.eulerAngles.y <= 340)
+            {
+                rightHit = true; // Flip turn angle to left
+            }
+        }
+            
     }
 
 }

@@ -24,25 +24,13 @@ public class TitleManager : MonoBehaviour
         {
             Destroy(instance); // If another instance of Title Manager exists, destroy this instance
         }
-    }
 
-    // Start is called before the first frame update
-    void Start()
-    {
         whiteBG = titleCovering.transform.GetChild(0).GetComponent<Image>();
         blackL = titleCovering.transform.GetChild(1).GetComponent<Image>();
         blackR = titleCovering.transform.GetChild(2).GetComponent<Image>();
 
         // Set the covering's positions at the start of the opening
         SetupOpening(Screen.width, Screen.height); // Pass in the width and height as parameters to avoid repeatedly calling the Screen to get the width and height
-        
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     private void SetupOpening(float w, float h)
@@ -73,7 +61,7 @@ public class TitleManager : MonoBehaviour
             blackL.rectTransform.localPosition = Vector3.Lerp(blackLV3, -moveTo, currTime/moveTime);
             blackR.rectTransform.localPosition = Vector3.Lerp(blackRV3, moveTo, currTime/moveTime);
             currTime += Time.deltaTime;
-            yield return null; // Player should not wait in between loops
+            yield return null; // Movement should not wait in between loops
         }
 
         currTime = 0f;
@@ -86,14 +74,15 @@ public class TitleManager : MonoBehaviour
             yield return null;
         }
 
-        GameManager.instance.ChangeGameState((int) GameManager.GameStates.MENU);
+        GameManager.instance.ChangeGameState(GameManager.GameStates.MENU);
         titleCovering.SetActive(false);
         yield return null;
     }
 
+    // Sets gamemode to testing then loads the testing scene
     public void GoToTestingGrounds()
     {
-        GameManager.instance.ChangeGameState((int) GameManager.GameStates.TESTING);
+        GameManager.instance.ChangeGameState(GameManager.GameStates.TESTING);
         SceneManager.LoadSceneAsync("DefaultScene");
     }
 
