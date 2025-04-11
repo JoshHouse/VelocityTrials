@@ -1,9 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
+
+    [SerializeField] AudioMixer masterMixer;
+
+    [HideInInspector] public float masterVolume;
 
     public static AudioManager instance;
 
