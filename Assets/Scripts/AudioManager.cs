@@ -5,35 +5,31 @@ using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
-
-    [SerializeField] AudioMixer masterMixer;
-
-    [HideInInspector] public float masterVolume;
-
     public static AudioManager instance;
+    [SerializeField] private AudioSource bgmObject;
+    [SerializeField] private AudioSource sfxObject;
+    [SerializeField] private AudioSource voiceObject;
 
     private void Awake()
     {
         if (instance == null)
         {
-            instance = this; // Instantiate this instance as the only instance of Audio Manager
-            DontDestroyOnLoad(gameObject); // Prevent this instance from being destroyed on load
+            instance = this;
+            DontDestroyOnLoad(instance);
         }
         else
         {
-            Destroy(instance); // If another instance of Audio Manager exists, destroy this instance
+            Destroy(instance);
         }
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public void PlayVoiceClip(AudioClip clip, Transform spawnPoint)
     {
-        
+        AudioSource audioSource = Instantiate(voiceObject, spawnPoint.position, Quaternion.identity);
+        audioSource.clip = clip;
+        audioSource.Play();
+        float clipLength = audioSource.clip.length;
+        Destroy(audioSource.gameObject, clipLength);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

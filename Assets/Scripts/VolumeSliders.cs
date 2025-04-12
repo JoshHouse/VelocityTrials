@@ -40,6 +40,10 @@ public class VolumeSliders : MonoBehaviour
                 muteImage.color = muteOn;
             }
         }
+
+        bgmSlider.value = PlayerPrefs.GetFloat("bgmVol", 0);
+        sfxSlider.value = PlayerPrefs.GetFloat("sfxVol", 0);
+        voiceSlider.value = PlayerPrefs.GetFloat("voiceVol", 0);
     }
 
     public void ToggleMute()

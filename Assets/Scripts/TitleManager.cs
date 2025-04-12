@@ -14,6 +14,8 @@ public class TitleManager : MonoBehaviour
     private Image blackL;
     private Image blackR;
 
+    [SerializeField] private AudioClip welcomeMessage;
+
     private void Awake()
     {
         if (instance == null)
@@ -55,6 +57,8 @@ public class TitleManager : MonoBehaviour
         Color startColor = whiteBG.color;
         Color transparentWhite = new Color(1, 1, 1, 0);
         yield return new WaitForSeconds(0.5f);
+
+        AudioManager.instance.PlayVoiceClip(welcomeMessage, transform);
 
         while (currTime < moveTime)
         {
