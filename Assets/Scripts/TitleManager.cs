@@ -15,6 +15,7 @@ public class TitleManager : MonoBehaviour
     private Image blackR;
 
     [SerializeField] private AudioClip welcomeMessage;
+    [SerializeField] private AudioClip titleBGM;
 
     private void Awake()
     {
@@ -50,6 +51,8 @@ public class TitleManager : MonoBehaviour
 
     public IEnumerator OpeningAnimation(float moveTime)
     {
+        AudioManager.instance.PlayBGM(titleBGM, transform);
+
         float currTime = 0f;
         Vector3 blackLV3 = blackL.rectTransform.localPosition;
         Vector3 blackRV3 = blackR.rectTransform.localPosition;
