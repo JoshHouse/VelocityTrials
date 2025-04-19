@@ -13,7 +13,12 @@ public class GameManager : MonoBehaviour
         OPENING = 0,
         MENU = 1,
         TESTING = 2,
+        IN_LEVEL_NORMAL = 3,
+        IN_LEVEL_TIME = 4,
+        EXIT = 5,
+        GAME_OVER = 6,
     }
+    public enum LevelType { NORMAL, TIME } // The two types of levels tha there can be
     public int gameState { get; private set; }
     public float pSensitivity { get; private set; }
 

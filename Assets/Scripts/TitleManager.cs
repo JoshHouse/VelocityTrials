@@ -56,7 +56,7 @@ public class TitleManager : MonoBehaviour
         float currTime = 0f;
         Vector3 blackLV3 = blackL.rectTransform.localPosition;
         Vector3 blackRV3 = blackR.rectTransform.localPosition;
-        Vector3 moveTo = new Vector3(1000, 0, 0);
+        Vector3 moveTo = new Vector3(Screen.width, 0, 0);
         Color startColor = whiteBG.color;
         Color transparentWhite = new Color(1, 1, 1, 0);
         yield return new WaitForSeconds(0.5f);
@@ -74,9 +74,9 @@ public class TitleManager : MonoBehaviour
         currTime = 0f;
         yield return new WaitForSeconds(0.25f);
 
-        while (currTime < moveTime)
+        while (currTime < 1f)
         {
-            whiteBG.color = Color.Lerp(startColor, transparentWhite, currTime/moveTime);
+            whiteBG.color = Color.Lerp(startColor, transparentWhite, currTime/1f);
             currTime += Time.deltaTime;
             yield return null;
         }

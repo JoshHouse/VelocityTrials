@@ -19,19 +19,19 @@ public class AudioMixerManager : MonoBehaviour
     public void SetBGMVolume(float volume)
     {
         mixer.SetFloat("bgmVolume", Mathf.Log10(volume) * 20f);
-        PlayerPrefs.SetFloat("bgmVol", Mathf.Log10(volume) * 20f);
+        PlayerPrefs.SetFloat("bgmVol", volume);
     }
 
     public void setSFXVolume(float volume)
     {
         mixer.SetFloat("sfxVolume", Mathf.Log10(volume) * 20f);
-        PlayerPrefs.SetFloat("sfxVol", Mathf.Log10(volume) * 20f);
+        PlayerPrefs.SetFloat("sfxVol", volume);
     }
 
     public void setVoiceVolume(float volume)
     {
         mixer.SetFloat("voiceVolume", Mathf.Log10(volume) * 20f);
-        PlayerPrefs.SetFloat("voiceVol", Mathf.Log10(volume) * 20f);
+        PlayerPrefs.SetFloat("voiceVol", volume);
     }
 
     public void Mute()
