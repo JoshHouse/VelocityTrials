@@ -12,7 +12,7 @@ TagManager:
   - Water
   - UI
   - 
-  - MantlingPoint
+  - 
   - 
   - 
   - 
@@ -27,8 +27,8 @@ TagManager:
   - 
   - whatIsGround
   - whatIsWall
-  - 
-  - 
+  - whatIsGrapplable
+  - whatIsMantlable
   - 
   - 
   - 

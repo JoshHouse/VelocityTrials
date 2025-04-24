@@ -158,9 +158,7 @@ LineRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Positions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0, y: 0, z: 1}
+  m_Positions: []
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.04
@@ -372,8 +370,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6f2165f425ed48c9aa1c7d747d5c0e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensitivityX: 400
-  sensitivityY: 400
   orientation: {fileID: 0}
-  playerMoveScript: {fileID: 0}
-  wallRunLeanAngle: 0
+  wRs: {fileID: 0}
+  sensitivityX: 100
+  sensitivityY: 100
