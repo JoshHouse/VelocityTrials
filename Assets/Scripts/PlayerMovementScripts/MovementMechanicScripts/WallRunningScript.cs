@@ -159,4 +159,9 @@ public class WallRunningScript : MonoBehaviour
     {
         canWallRun = true;
     }
+
+    public bool CanStartWallRun()
+    {
+        return pMm.verticalInput > 0 && !isWallRunning && canWallRun && (wallLeft || wallRight);
+    }
 }

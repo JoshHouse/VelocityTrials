@@ -19,11 +19,18 @@ public class PlayerMovementManager : MonoBehaviour
     public GroundedMovementScript gMs;                      // Reference to the grounded movement script
     public AirborneMovementScript aMs;                      // Reference to the airborne movement script
 
+    [Header("Always Accessable Movement Mechanic Scripts")]
+    public GrapplingScript gS;
+    public WallClimbingScript wCs;
+    public MantlingScript mS;
+
     [Header("Keybinds")]
     public KeyCode jumpKey = KeyCode.Space;                 // Jump keybind
     public KeyCode sprintKey = KeyCode.LeftShift;           // Sprint Keybind
     public KeyCode crouchKey = KeyCode.C;                   // Crouch Keybind
     public KeyCode slideKey = KeyCode.LeftControl;          // Slide Keybind
+    public KeyCode swingGrappleKey = KeyCode.Mouse0;        // Swing Grapple Keybind
+    public KeyCode pullGrappleKey = KeyCode.Mouse1;         // Pull Grapple Keybind
 
     [Header("Speed Caps")]
     public float groundedDrag;                              // Drag applied when grounded
@@ -49,8 +56,11 @@ public class PlayerMovementManager : MonoBehaviour
         walking,
         sprinting,
         sliding,
+        mantling,
         wallRunning,
         wallClimbing,
+        grappleSwinging,
+        grapplePulling,
         airborne
     }
 
@@ -81,25 +91,27 @@ public class PlayerMovementManager : MonoBehaviour
 
         // Get the child from position 0 (the body object)
         body = transform.GetChild(0);
-        if (body != null)
+        if (body == null)
         {
-            // Get the renderer component of that object
-            bodyRenderer = body.GetComponent<Renderer>();
-            if (bodyRenderer != null)
-            {
-                // Get the Length, Width, and Height of the body from the renderer
-                bodyWidth = bodyRenderer.bounds.size.x;
-                bodyLength = bodyRenderer.bounds.size.z;
-                bodyHeight = bodyRenderer.bounds.size.y;
-            }
-            else
-            {
-                // Default with the capsule object if the code grabbed the wrong component or the body doesnt have a renderer
-                bodyWidth = 1;
-                bodyLength = 1;
-                bodyHeight = 2;
-            }
+            // Default with the capsule object if the code grabbed the wrong component
+            bodyWidth = 1;
+            bodyLength = 1;
+            bodyHeight = 2;
+            return;
         }
+
+        // Get the renderer component of that object
+        bodyRenderer = body.GetComponent<Renderer>();
+        if (bodyRenderer == null)
+        {
+            // Default with the capsule object if the code couldnt find the renderer
+            bodyWidth = 1;
+            bodyLength = 1;
+            bodyHeight = 2;
+            return;
+        }
+
+
     }
 
     private void Update()
@@ -111,16 +123,53 @@ public class PlayerMovementManager : MonoBehaviour
                                  whatIsGround)                  // Layer mask of what to look for
                         || gMs.OnSlope();           // Slope check also activates the grounded flag
 
-        
+        // Get the Length, Width, and Height of the body from the renderer
+        bodyWidth = bodyRenderer.bounds.size.x;
+        bodyLength = bodyRenderer.bounds.size.z;
+        bodyHeight = bodyRenderer.bounds.size.y;
+
 
         // Gets input and calls movement activation functions
         GetInput();
+
         // Changes player's state
         StateManager();
-        // Normalizes rigidbody velocity and multiplies by move speed, lerping if the change in speed is too large
-        SpeedControl();
+
+        // Rotates the players arm while grappling
+        gS.RotateArmOnGrapple();
+
         // Updates the ui values
         UpdateUI();
+
+        if(mS.isMantling)
+        {
+            if (speedLerpCoroutine != null)
+            {
+                StopCoroutine(speedLerpCoroutine);
+                speedLerpCoroutine = null;
+            }
+            return;
+        }
+
+        // Allow spring joint on grapple to handle physics during grapple. 
+        if (gS.isSwingGrappling || gS.isPullGrappling)
+        {
+            if (speedLerpCoroutine != null)
+            {
+                StopCoroutine(speedLerpCoroutine);
+                speedLerpCoroutine = null;
+            }
+
+
+            // Speed control doesn't run when grappling. Updates the move speed based on the player's velocity
+            // To lerp back down when they stop the grapple
+            float flatSpeed = new Vector3(playerRigidBody.velocity.x, 0f, playerRigidBody.velocity.z).magnitude;
+            moveSpeed = flatSpeed;
+            return;
+        }
+
+        // Normalizes rigidbody velocity and multiplies by move speed, lerping if the change in speed is too large
+        SpeedControl();
     }
 
     private void FixedUpdate()
@@ -128,6 +177,12 @@ public class PlayerMovementManager : MonoBehaviour
         // Adds force to the rigid body
         ManageMovement();
         
+    }
+
+    private void LateUpdate()
+    {
+        // Draw's the grapple rope after all values have been updated
+        gS.DrawGrappleRope();
     }
 
     /*
@@ -142,17 +197,115 @@ public class PlayerMovementManager : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        // Get grounded or airborne input
+        bool shouldGatherStandardInput = attemptGatherMechanicInput();
+
+        // Return if mechanic movement input was gathered
+        if (!shouldGatherStandardInput)
+            return;
+
+        // Get grounded or airborne input if not using general movement mechanics
         if (grounded)
         {
+            gS.grappleCount = 0;
             gMs.GetGroundedInput();
-
+            return;
         }
-        else
+
+        aMs.GetAirborneInput();
+    }
+
+    private bool attemptGatherMechanicInput()
+    {
+        if (noMovementMechanicsRunning())
         {
-            aMs.GetAirborneInput();
+            if (lookForStartInputs())
+                return false;
 
+            return true;
         }
+
+        gS.predictionVisualizer.SetActive(false);
+
+        if (gS.isPullGrappling)
+            return false;
+
+        if (gS.isSwingGrappling)
+        {
+            // If they are grappling and they release the grapple key
+            if (Input.GetKeyUp(swingGrappleKey) && gS.isSwingGrappling)
+            {
+                // Stop the Grapple
+                gS.EndSwingGrapple();
+
+                return false;
+            }
+        }
+
+        if (mS.isMantling)
+            return false;
+
+
+        // If they are climbing and they stop holding into the wall
+        if (verticalInput <= 0)
+        {
+            // Stop Climbing
+            wCs.StopClimbing();
+
+            return false;
+        }
+
+        // If they press the jump key while climbing
+        if (Input.GetKeyDown(jumpKey))
+        {
+            // Stop climbing and wall jump
+            wCs.StopClimbing();
+            wCs.WallJump();
+
+            return false;
+        }
+
+        return false;
+    }
+
+    private bool lookForStartInputs()
+    {
+        if (gS.CanGrapple() && Input.GetKeyDown(pullGrappleKey))
+        {
+            gS.StartPullGrapple();
+
+            return true;
+        }
+
+        // If not already grappling, can grapple, and they press the grapple key
+        if (gS.CanGrapple() && Input.GetKeyDown(swingGrappleKey))
+        {
+            // Start grapple
+            gS.StartSwingGrapple();
+
+            return true;
+        }
+
+        if (Input.GetKeyDown(jumpKey) && mS.canMantle())
+        {
+            mS.startMantle();
+            return true;
+        }
+
+        // If they can climb and they press the jump key and they aren't grappling
+        if (Input.GetKeyDown(jumpKey) && wCs.CanClimb())
+        {
+            // Start climbing
+            wCs.StartClimbing();
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool noMovementMechanicsRunning()
+    {
+        return !wCs.isClimbing && !mS.isMantling && !gS.isSwingGrappling && !gS.isPullGrappling;
     }
 
     /*
@@ -163,15 +316,49 @@ public class PlayerMovementManager : MonoBehaviour
 
     private void StateManager()
     {
-        // Call grounded and airborne state handlers
+        if (gS.isPullGrappling)
+        {
+            gS.predictionVisualizer.SetActive(false);
+            movementState = MovementState.grapplePulling;
+            return;
+        }
+
+        // If Grappling
+        if (gS.isSwingGrappling)
+        {
+            gS.predictionVisualizer.SetActive(false);
+            // Set their state
+            movementState = MovementState.grappleSwinging;
+            return;
+        }
+
+        if (mS.isMantling)
+        {
+            gS.predictionVisualizer.SetActive(false);
+            movementState = MovementState.mantling;
+            return;
+        }
+
+        // If they are climbing
+        if (wCs.isClimbing)
+        {
+            gS.predictionVisualizer.SetActive(false);
+            // Set their state
+            movementState = MovementState.wallClimbing;
+
+            // Set Desired Move Speed to wallClimbSideSpeed
+            desiredMoveSpeed = wallClimbSideSpeed;
+            return;
+        }
+
+        // Call grounded and airborne state handlers if not using generalized movement mechanics
         if (grounded)
         {
             gMs.groundedStateHandler();
+            return;
         }
-        else
-        {
-            aMs.airborneStateHandler();
-        }
+
+        aMs.airborneStateHandler();
     }
 
     /*
@@ -189,18 +376,34 @@ public class PlayerMovementManager : MonoBehaviour
         playerRigidBody.useGravity = (!gMs.OnSlope() && !aMs.wRs.isWallRunning);
 
         // Call wall check for climbing script (in player movement manager since grounded and airborne use wall climbing)
-        gMs.wCs.WallCheck();
+        wCs.WallCheck();
+        if (gS.isPullGrappling)
+            return;
+
+        // let spring joint in grappling script handle player movement
+        if (gS.isSwingGrappling)
+            return;
+
+        if (mS.isMantling)
+        {
+            mS.handleMantle();
+            return;
+        }
+            
+
+        // If they are climbing then call climbing script's movement handler
+        if (wCs.isClimbing)
+            wCs.ClimbingMovement();
+        
 
         // Call the movement handlers to add force
         if (grounded)
         {
             gMs.handleGroundedMovement();
+            return;
+        }
 
-        }
-        else
-        {
-            aMs.handleAirborneMovement();
-        }
+        aMs.handleAirborneMovement();
     }
 
     /*
@@ -211,36 +414,46 @@ public class PlayerMovementManager : MonoBehaviour
 
     public void SpeedControl()
     {
-        // If grounded, add drag, if not let physics engine handle gravity
-        if (grounded)
+        playerRigidBody.drag = (grounded ? groundedDrag : 0f);
+
+        // Lerping speed
+        LerpIfNeeded();
+
+        // Log the desired move speed for this frame to detect change in the next frame
+        lastDesiredMoveSpeed = desiredMoveSpeed;
+
+
+        // If on slope
+        if (gMs.OnSlope() && !gMs.jumpOnSlope)
         {
-            playerRigidBody.drag = groundedDrag;
-        }
-        else
-        {
-            playerRigidBody.drag = 0f;
+            // If their total velocity is not above the moveSpeed, return
+            if (playerRigidBody.velocity.magnitude <= moveSpeed)
+                return;
+
+            // Adjust their velocity to be the moveSpeed
+            playerRigidBody.velocity = playerRigidBody.velocity.normalized * moveSpeed;
+            return;
         }
 
 
-        // * Lerping Player Movement if needed *
+        // If not on a slope, ignore the y velocity
+        Vector3 flatVelocity = new Vector3(playerRigidBody.velocity.x, 0f, playerRigidBody.velocity.z);
 
-        // Lerp move speed if the player's moveSpeed - 1f is above the sprint speed or their desired move speed is above the sprint speed
-        if (desiredMoveSpeed > sprintSpeed || moveSpeed - 1f > sprintSpeed)
-        {
-            // If no coroutine exists, start a lerp speed coroutine
-            if (speedLerpCoroutine == null)
-            {
-                speedLerpCoroutine = StartCoroutine(SmoothlyLerpMoveSpeed());
-            }
-            // If the desired move speed changed since the last frame, reset the coroutine
-            else if (desiredMoveSpeed != lastDesiredMoveSpeed)
-            {
-                StopCoroutine(speedLerpCoroutine);
-                speedLerpCoroutine = StartCoroutine(SmoothlyLerpMoveSpeed());
-            }
-        }
-        // Set move speed immediately if their move speed is below the sprint speed (for responsive movement changes)
-        else
+        // If not going above the move speed ignoring y velocity, return
+        if (flatVelocity.magnitude <= moveSpeed)
+            return;
+
+
+        // If going above the move speed, manually cap the movement speed ignoring the y velocity
+        Vector3 limitedVelocity = flatVelocity.normalized * moveSpeed;
+        playerRigidBody.velocity = new Vector3(limitedVelocity.x, playerRigidBody.velocity.y, limitedVelocity.z);
+
+    }
+
+    private void LerpIfNeeded()
+    {
+        // Set move speed immediately if their move speed and desired speed is less than or equal to the sprint speed
+        if (desiredMoveSpeed <= sprintSpeed && moveSpeed - 1f <= sprintSpeed)
         {
             // If there is a coroutine running, stop it
             if (speedLerpCoroutine != null)
@@ -248,39 +461,26 @@ public class PlayerMovementManager : MonoBehaviour
                 StopCoroutine(speedLerpCoroutine);
                 speedLerpCoroutine = null;
             }
+
             // Set the move speed directly
             moveSpeed = desiredMoveSpeed;
+            return;
         }
 
-        // Log the desired move speed for this frame to detect change in the next frame
-        lastDesiredMoveSpeed = desiredMoveSpeed;
-
-
-        // * Speed Cap *
-        // If on slope
-        if (gMs.OnSlope() && !gMs.jumpOnSlope)
+        // If no coroutine exists, start a lerp speed coroutine
+        if (speedLerpCoroutine == null)
         {
-            // If their total velocity is above the moveSpeed
-            if (playerRigidBody.velocity.magnitude > moveSpeed)
-            {
-                // Adjust their velocity to be the moveSpeed
-                playerRigidBody.velocity = playerRigidBody.velocity.normalized * moveSpeed;
-            }
+            speedLerpCoroutine = StartCoroutine(SmoothlyLerpMoveSpeed());
+            return;
         }
-        else 
+
+        // If the desired move speed changed since the last frame, reset the coroutine
+        if (desiredMoveSpeed != lastDesiredMoveSpeed)
         {
-            // If not on a slope, ignore the y velocity
-            Vector3 flatVelocity = new Vector3(playerRigidBody.velocity.x, 0f, playerRigidBody.velocity.z);
-
-            // If going above the move speed, manually cap the movement speed ignoring the y velocity
-            if (flatVelocity.magnitude > moveSpeed)
-            {
-                Vector3 limitedVelocity = flatVelocity.normalized * moveSpeed;
-                playerRigidBody.velocity = new Vector3(limitedVelocity.x, playerRigidBody.velocity.y, limitedVelocity.z);
-            }
+            StopCoroutine(speedLerpCoroutine);
+            speedLerpCoroutine = StartCoroutine(SmoothlyLerpMoveSpeed());
+            return;
         }
-
-
     }
 
     // Coroutine to lerp move speed increase or decrease over time
@@ -312,8 +512,10 @@ public class PlayerMovementManager : MonoBehaviour
                 time += Time.deltaTime * speedIncreaseMultiplier;
             }
 
+            // Stops the function until the next frame. Will pick up from here on the next frame
             yield return null;
         }
+
         // Set lerp coroutine to null if the lerp has ended naturally
         speedLerpCoroutine = null;
     }
@@ -332,10 +534,10 @@ public class PlayerMovementManager : MonoBehaviour
         //topRightText1.text = "Horizontal Speed: " + Math.Round(flatSpeed, 2).ToString();
         //topRightText2.text = "Total Speed: " + totalSpeed.ToString();
 
-        topRightText1.text = "Last Desired Move Speed:  " + lastDesiredMoveSpeed.ToString();
-        topRightText2.text = "Move Speed:" + moveSpeed.ToString();
+        topRightText1.text = "Movement State:  " + movementState.ToString();
+        topRightText2.text = "Move Speed: " + moveSpeed.ToString();
 
-        bottomLeftText.text = "Desired Move Speed: " + desiredMoveSpeed.ToString();
+        bottomLeftText.text = "OnSlope: " + gMs.OnSlope().ToString();
     }
 
 }

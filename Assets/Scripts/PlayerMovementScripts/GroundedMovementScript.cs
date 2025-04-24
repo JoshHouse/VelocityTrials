@@ -10,7 +10,6 @@ public class GroundedMovementScript : MonoBehaviour
 
     [Header("Movement Mechanic Scripts")]
     public SlidingScript sS;                        // Reference to the sliding script
-    public WallClimbingScript wCs;                  // Reference to the climbing script
 
     [Header("Slope Handling")]
     public float maxSlopeAngle;                     // Maximum slope angle that is walkable
@@ -50,32 +49,8 @@ public class GroundedMovementScript : MonoBehaviour
 
     public void GetGroundedInput()
     {
-        // If there is a wall climbable wall, the player inputs the jump key, they are looking into the wall,
-        // they aren't already climbing, and they are inputting forward into the wall
-        if (wCs.wallInFront &&
-            Input.GetKeyDown(pMm.jumpKey) &&
-            wCs.wallLookAngle < wCs.maxWallLookAngle &&
-            !wCs.isClimbing &&
-            pMm.verticalInput > 0)
-        {
-            // Start climbing
-            wCs.StartClimbing();
-        }
-        // If they are climbing and they stop holding into the wall
-        else if (wCs.isClimbing && pMm.verticalInput <= 0)
-        {
-            // Stop Climbing
-            wCs.StopClimbing();
-        }
-        // If they press the jump key while climbing
-        else if (wCs.isClimbing && Input.GetKeyDown(pMm.jumpKey))
-        {
-            // Stop climbing and wall jump
-            wCs.StopClimbing();
-            wCs.WallJump();
-        }
         // Call jump if flag is ready and jump is pressed
-        else if (Input.GetKey(pMm.jumpKey) && readyToJump && !wCs.isClimbing)
+        if (Input.GetKey(pMm.jumpKey) && readyToJump)
         {
             // If sliding, stop sliding when jumping
             if (sS.isSliding)
@@ -96,6 +71,14 @@ public class GroundedMovementScript : MonoBehaviour
         else if (Input.GetKeyDown(pMm.slideKey) &&
                 (pMm.horizontalInput != 0 || pMm.verticalInput != 0) &&
                 !sS.isSliding)
+        {
+            sS.StartSlide();
+        }
+
+        else if (Input.GetKey(pMm.slideKey) &&
+            (pMm.horizontalInput != 0 || pMm.verticalInput != 0) &&
+            !sS.isSliding &&
+            pMm.moveSpeed > pMm.sprintSpeed)
         {
             sS.StartSlide();
         }
@@ -132,72 +115,57 @@ public class GroundedMovementScript : MonoBehaviour
     {
         // Stops wallrunning if you hit the ground
         if(aMs.wRs.isWallRunning)
-        {
             aMs.wRs.StopWallRun();
-        }
 
         // Sets double jump flag to true if you hit the ground
         if (!aMs.doubleJumpReady)
-        {
             aMs.doubleJumpReady = true;
-        }
 
-        // If they are climbing
-        if (wCs.isClimbing)
-        {
-            // Set their state
-            pMm.movementState = PlayerMovementManager.MovementState.wallClimbing;
 
-            // Set Desired Move Speed to wallClimbSideSpeed
-            pMm.desiredMoveSpeed = pMm.wallClimbSideSpeed;
-        }
         // If they are sliding
-        else if (sS.isSliding)
+        if (sS.isSliding)
         {
             // Set their state
             pMm.movementState = PlayerMovementManager.MovementState.sliding;
 
 
             // If they are sliding down a slope, set their desired slide speed to their max slide speed
-            if(OnSlope() &&
-                pMm.playerRigidBody.velocity.y < 0.1f)
+            if (OnSlope() && pMm.playerRigidBody.velocity.y < 0.1f)
             {
                 // Max slide speed is much higher than other speeds to allow you to build up speed when sliding down a slope
                 pMm.desiredMoveSpeed = pMm.slideSpeed;
+                return;
             }
+
             // if they are sliding up a slope or not on a slope, set their max speed when sliding to sprint speed
-            else
-            {
-                pMm.desiredMoveSpeed = pMm.sprintSpeed;
-            }
+            pMm.desiredMoveSpeed = pMm.sprintSpeed;
+            return;
         }
 
         // If they are holding crouch and not sliding
-        else if (Input.GetKey(pMm.crouchKey))
+        if (Input.GetKey(pMm.crouchKey))
         {
             // Set their state
             pMm.movementState = PlayerMovementManager.MovementState.crouching;
             // Set their max speed to crouchSpeed
             pMm.desiredMoveSpeed = pMm.crouchSpeed;
+            return;
         }
 
         // If they are holding sprint key
-        else if (Input.GetKey(pMm.sprintKey))
+        if (Input.GetKey(pMm.sprintKey))
         {
             // Set their state
             pMm.movementState = PlayerMovementManager.MovementState.sprinting;
             // Set their max speed to sprint speed
             pMm.desiredMoveSpeed = pMm.sprintSpeed;
+            return;
         }
 
-        // If not sprinting, sliding, or crouching, they are walking
-        else
-        {
-            // Set their state
-            pMm.movementState = PlayerMovementManager.MovementState.walking;
-            // Set their max speed to walk speed
-            pMm.desiredMoveSpeed = pMm.walkSpeed;
-        }
+        // If not sprinting, sliding, or crouching, they are walking so set their state
+        pMm.movementState = PlayerMovementManager.MovementState.walking;
+        // Set their max speed to walk speed
+        pMm.desiredMoveSpeed = pMm.walkSpeed;
 
     }
 
@@ -209,14 +177,9 @@ public class GroundedMovementScript : MonoBehaviour
 
     public void handleGroundedMovement()
     {
-        // If they are climbing
-        if(wCs.isClimbing)
-        {
-            // Call climbing script's movement handler
-            wCs.ClimbingMovement();
-        }
+
         // If sliding
-        else if (sS.isSliding)
+        if (sS.isSliding)
         {
             // Call sliding script's movement handler
             sS.handleSlideMovement();
@@ -224,18 +187,14 @@ public class GroundedMovementScript : MonoBehaviour
 
 
         // If on a slope and not trying to jump, add slope force
-        if (OnSlope() &&
-            !jumpOnSlope)
+        if (OnSlope() && !jumpOnSlope)
         {
             pMm.playerRigidBody.AddForce(GetSlopeMovementDirection(pMm.moveDirection) * pMm.moveSpeed * 20f, ForceMode.Force);
+            return;
         }
 
         // If not on slope or jumping off the slope, add flat force
-        else
-        {
-            pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f, ForceMode.Force);
-        }
-
+        pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f, ForceMode.Force);
     }
 
     /*
@@ -248,20 +207,18 @@ public class GroundedMovementScript : MonoBehaviour
     public bool OnSlope()
     {
         // Cast a ray down from the center of the player to detect ground
-        if (Physics.Raycast(pMm.orientation.position,           // Origin of the ray
+        if (!Physics.Raycast(pMm.orientation.position,           // Origin of the ray
                             Vector3.down,                       // Direction of the ray
                             out slopeHit,                       // Where to store the information
                             (pMm.bodyHeight * 0.5f) + 0.3f,     // Ray distance
                             pMm.whatIsGround))                  // Layer mask of what the ray is looking for
-        {
-            // Calculate the angle of the slope
-            float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+            return false; // Return false if nothing was hit
 
-            // Return true if the ground hit is an angle and that angle less than the max slope angle
-            return angle < maxSlopeAngle && angle != 0;
-        }
-        // Return false if nothing was hit
-        return false;
+        // Calculate the angle of the slope
+        float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
+
+        // Return true if the ground hit is an angle and that angle less than the max slope angle
+        return angle < maxSlopeAngle && angle != 0;
     }
 
     public Vector3 GetSlopeMovementDirection(Vector3 direction)

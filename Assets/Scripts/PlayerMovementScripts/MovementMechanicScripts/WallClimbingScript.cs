@@ -75,7 +75,7 @@ public class WallClimbingScript : MonoBehaviour
     public void ClimbingMovement()
     {
         // If the climb timer isnt 0 yet, and the player is still looking at an acceptable angle
-        if (climbTimer > 0 && wallLookAngle < maxWallLookAngle)
+        if (climbTimer > 0 && wallLookAngle < maxWallLookAngle && wallInFront)
         {
             // Manually set the y velocity of the player (more simple than adding force since dynamic upward movement isnt necessary for climbing)
             pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, pMm.wallClimbUpSpeed, pMm.playerRigidBody.velocity.z);
@@ -127,5 +127,10 @@ public class WallClimbingScript : MonoBehaviour
     public void ResetWallClimb()
     {
         canWallClimb = true;
+    }
+
+    public bool CanClimb()
+    {
+        return wallInFront && wallLookAngle < maxWallLookAngle && !isClimbing && pMm.verticalInput > 0;
     }
 }

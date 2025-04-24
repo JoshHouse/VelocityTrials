@@ -10,7 +10,6 @@ public class AirborneMovementScript : MonoBehaviour
 
     [Header("Movement Scripts")]
     public WallRunningScript wRs;           // Reference to the wall running script
-    public WallClimbingScript wCs;          // Reference to the climbing script
 
     public float airMultiplier;             // Air speed multipler
 
@@ -33,60 +32,36 @@ public class AirborneMovementScript : MonoBehaviour
         // Shoots raycast to check for wall runnable walls
         wRs.CheckForWall();
 
-        if (wCs.wallInFront &&
-            Input.GetKeyDown(pMm.jumpKey) &&
-            wCs.wallLookAngle < wCs.maxWallLookAngle &&
-            !wCs.isClimbing &&
-            pMm.verticalInput > 0)
-        {
-            wCs.StartClimbing();
-        }
-        else if (wCs.isClimbing && pMm.verticalInput <= 0)
-        {
-            wCs.StopClimbing();
-        }
-        else if (wCs.isClimbing && Input.GetKeyDown(pMm.jumpKey))
-        {
-            wCs.StopClimbing();
-            wCs.WallJump();
-        }
-
         // If wall running and presses the jump key
-        else if (wRs.isWallRunning && Input.GetKeyDown(pMm.jumpKey))
+        if (wRs.isWallRunning && Input.GetKeyDown(pMm.jumpKey))
         {
             // Stop wall run
             wRs.StopWallRun();
             // Jump away from the wall
             wRs.WallJump();
+            return;
         }
 
-        // If player pressed jump key, there is a wall in range, and they are inputting forward movement
-        else if ((wRs.wallLeft || wRs.wallRight) &&
-                Input.GetKeyDown(pMm.jumpKey) &&
-                pMm.verticalInput > 0)
+        // If player pressed jump key and can start a wall run
+        if (Input.GetKeyDown(pMm.jumpKey) && wRs.CanStartWallRun())
         {
-            // If not wall running but can wall run
-            if (!wRs.isWallRunning && wRs.canWallRun)
-            {
-                // Start wall run
-                wRs.StartWallRun();
-            }
+            // Start wall run
+            wRs.StartWallRun();
+            return;
         }
 
         // If there, is no wall on the left or right or the player isnt inputting forward, and is wall running
-        else if ((!(wRs.wallLeft || wRs.wallRight) || pMm.verticalInput <= 0)
+        if ((!(wRs.wallLeft || wRs.wallRight) || pMm.verticalInput <= 0)
                 && wRs.isWallRunning)
         {
             // Stop wall run
             wRs.StopWallRun();
+            return;
         }
 
-        // if double jump is ready, the readyToJump flag in the grounded movement script is true, and user inputs jump
-        else if (doubleJumpReady && gMs.readyToJump && Input.GetKeyDown(pMm.jumpKey))
-        {
-            // Jump
+        // if double jump is ready, the readyToJump flag in the grounded movement script is true, and user inputs jump then jump
+        if (doubleJumpReady && gMs.readyToJump && Input.GetKeyDown(pMm.jumpKey))
             Jump();
-        }
     }
 
     /*
@@ -97,29 +72,21 @@ public class AirborneMovementScript : MonoBehaviour
 
     public void airborneStateHandler()
     {
-        if (wCs.isClimbing)
-        {
-            pMm.movementState = PlayerMovementManager.MovementState.wallClimbing;
-
-            // Set desired move speed to wallClimbSideSpeed
-            pMm.desiredMoveSpeed = pMm.wallClimbSideSpeed;
-        }
         // if wall running flag is active
-        else if (wRs.isWallRunning)
+        if (wRs.isWallRunning)
         {
+            pMm.gS.predictionVisualizer.SetActive(false);
             // Set the state
             pMm.movementState = PlayerMovementManager.MovementState.wallRunning;
             // Set the move speed to wall run speed
             pMm.desiredMoveSpeed = pMm.wallRunSpeed;
+            return;
         }
-        // If not wall running but airborne
-        else
-        {
-            // Set the state
-            pMm.movementState = PlayerMovementManager.MovementState.airborne;
-            // Set the movement speed to air straife speed
-            pMm.desiredMoveSpeed = pMm.airStraifeSpeed;
-        }
+
+        // If not wall running but airborne then set the state
+        pMm.movementState = PlayerMovementManager.MovementState.airborne;
+        // Set the movement speed to air straife speed
+        pMm.desiredMoveSpeed = pMm.airStraifeSpeed;
 
         
         
@@ -133,21 +100,16 @@ public class AirborneMovementScript : MonoBehaviour
 
     public void handleAirborneMovement()
     {
-        if (wCs.isClimbing)
-        {
-            wCs.ClimbingMovement();
-        }
         // If wall running
         if (wRs.isWallRunning)
         {
             // Call wall run movement handler
             wRs.HandleWallRunMovement();
+            return;
         }
-        else
-        {
-            // Add force in the player's movement direction
-            pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f * airMultiplier, ForceMode.Force);
-        }
+
+        // Add force in the player's movement direction
+        pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f * airMultiplier, ForceMode.Force);
     }
 
     /*

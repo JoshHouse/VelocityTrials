@@ -370,6 +370,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6f2165f425ed48c9aa1c7d747d5c0e4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensitivityX: 400
-  sensitivityY: 400
   orientation: {fileID: 0}
+  wRs: {fileID: 0}
+  sensitivityX: 100
+  sensitivityY: 100
