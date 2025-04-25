@@ -9,12 +9,15 @@ public class TitleManager : MonoBehaviour
 
     public static TitleManager instance;
 
-    public GameObject titleCovering;
-    private Image whiteBG;
-    private Image blackL;
-    private Image blackR;
+    [SerializeField] private GameObject titleCovering;
+    private Transform whiteBG;
+    private Image whiteBGImage;
+    private Transform blackL;
+    private Transform blackR;
 
-    [SerializeField] private AudioClip welcomeMessage;
+    [SerializeField] GameObject centerDoor;
+
+    [SerializeField] private AudioClip[] voiceClips;
     [SerializeField] private AudioClip titleBGM;
 
     private void Awake()
@@ -28,9 +31,10 @@ public class TitleManager : MonoBehaviour
             Destroy(instance); // If another instance of Title Manager exists, destroy this instance
         }
 
-        whiteBG = titleCovering.transform.GetChild(0).GetComponent<Image>();
-        blackL = titleCovering.transform.GetChild(1).GetComponent<Image>();
-        blackR = titleCovering.transform.GetChild(2).GetComponent<Image>();
+        whiteBG = titleCovering.transform.GetChild(0);
+        whiteBGImage = whiteBG.GetComponent<Image>();
+        blackL = titleCovering.transform.GetChild(1);
+        blackR = titleCovering.transform.GetChild(2);
 
         // Set the covering's positions at the start of the opening
         SetupOpening(Screen.width, Screen.height); // Pass in the width and height as parameters to avoid repeatedly calling the Screen to get the width and height
@@ -38,59 +42,83 @@ public class TitleManager : MonoBehaviour
 
     private void SetupOpening(float w, float h)
     {
-        whiteBG.rectTransform.sizeDelta = new Vector3(w, h); // Changes the scale of the white covering to match the screen's width and height
+
+        RawImage blackLImage = blackL.GetComponent<RawImage>();
+        RawImage blackRImage = blackR.GetComponent<RawImage>();
+
+        whiteBGImage.rectTransform.sizeDelta = new Vector3(w, h); // Changes the scale of the white covering to match the screen's width and height
 
         // Make the left black image match the screen's height and cover half the width of the screen on the left
-        blackL.rectTransform.sizeDelta = new Vector3(w/2, h);
-        blackL.rectTransform.position = new Vector3(blackL.rectTransform.sizeDelta.x - (w/4), blackL.rectTransform.position.y, 0);
+        blackLImage.rectTransform.sizeDelta = new Vector3(w/2, h);
+        blackLImage.rectTransform.position = new Vector3(blackLImage.rectTransform.sizeDelta.x - (w/4), blackLImage.rectTransform.position.y, 0);
 
         // Same as the left image, but for the right
-        blackR.rectTransform.sizeDelta = new Vector3(w/2, h);
-        blackR.rectTransform.position = new Vector3(blackR.rectTransform.sizeDelta.x + (w/4), blackR.rectTransform.position.y, 0);
+        blackRImage.rectTransform.sizeDelta = new Vector3(w/2, h);
+        blackRImage.rectTransform.position = new Vector3(blackRImage.rectTransform.sizeDelta.x + (w/4), blackRImage.rectTransform.position.y, 0);
     }
 
     public IEnumerator OpeningAnimation(float moveTime)
     {
         AudioManager.instance.PlayBGM(titleBGM, transform);
 
-        float currTime = 0f;
-        Vector3 blackLV3 = blackL.rectTransform.localPosition;
-        Vector3 blackRV3 = blackR.rectTransform.localPosition;
+
+        Vector3 blackLV3 = blackL.transform.localPosition;
+        Vector3 blackRV3 = blackR.transform.localPosition;
         Vector3 moveTo = new Vector3(Screen.width, 0, 0);
-        Color startColor = whiteBG.color;
+        Color startColor = whiteBGImage.color;
         Color transparentWhite = new Color(1, 1, 1, 0);
         yield return new WaitForSeconds(0.5f);
 
-        AudioManager.instance.PlayVoiceClip(welcomeMessage, transform);
+        AudioManager.instance.PlayVoiceClip(voiceClips[0], transform);
 
-        while (currTime < moveTime)
-        {
-            blackL.rectTransform.localPosition = Vector3.Lerp(blackLV3, -moveTo, currTime/moveTime);
-            blackR.rectTransform.localPosition = Vector3.Lerp(blackRV3, moveTo, currTime/moveTime);
-            currTime += Time.deltaTime;
-            yield return null; // Movement should not wait in between loops
-        }
+        StartCoroutine(MovementLERP(blackL, moveTime, blackLV3, -moveTo));
+        StartCoroutine(MovementLERP(blackR, moveTime, blackRV3, moveTo));
 
-        currTime = 0f;
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
+
+        float currTime = 0f;
 
         while (currTime < 1f)
         {
-            whiteBG.color = Color.Lerp(startColor, transparentWhite, currTime/1f);
+            whiteBGImage.color = Color.Lerp(startColor, transparentWhite, currTime / 1f);
             currTime += Time.deltaTime;
             yield return null;
         }
+
+
+        yield return new WaitForSeconds(0.25f);
 
         GameManager.instance.ChangeGameState(GameManager.GameStates.MENU);
         titleCovering.SetActive(false);
         yield return null;
     }
 
-    // Sets gamemode to testing then loads the testing scene
-    public void GoToTestingGrounds()
+    public IEnumerator EnterLevel(int levelIndex, GameManager.GameStates gameState)
     {
-        GameManager.instance.ChangeGameState(GameManager.GameStates.TESTING);
-        SceneManager.LoadSceneAsync("DefaultScene");
+        titleCovering.SetActive(true);
+        StartCoroutine(MovementLERP(centerDoor.transform, 1f, centerDoor.transform.localPosition, centerDoor.transform.localPosition + new Vector3(0, 10, 0)));
+
+        float clipLength = voiceClips[1].length;
+        AudioManager.instance.PlayVoiceClip(voiceClips[1], transform);
+        yield return new WaitForSeconds(clipLength);
+
+        GameManager.instance.ChangeGameState(gameState);
+        SceneManager.LoadScene(levelIndex);
+        yield return null;
+    }
+
+    private IEnumerator MovementLERP(Transform objToMove, float moveTime, Vector3 objStart, Vector3 moveTo)
+    {
+        float currTime = 0f;
+
+        while (currTime < moveTime)
+        {
+            objToMove.transform.localPosition = Vector3.Lerp(objStart, moveTo, currTime/moveTime);
+            currTime += Time.deltaTime;
+            yield return null;
+        }
+
+        yield return null;
     }
 
 }

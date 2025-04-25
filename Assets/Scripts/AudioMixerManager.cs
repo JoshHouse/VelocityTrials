@@ -10,10 +10,9 @@ public class AudioMixerManager : MonoBehaviour
 
     private void Awake()
     {
-        mixer.SetFloat("bgmVolume", PlayerPrefs.GetFloat("bgmVol"));
-        mixer.SetFloat("sfxVolume", PlayerPrefs.GetFloat("sfxVol"));
-        mixer.SetFloat("voiceVolume", PlayerPrefs.GetFloat("voiceVol"));
-        mixer.SetFloat("masterVolume", (float)PlayerPrefs.GetInt("mute"));
+        mixer.SetFloat("bgmVolume", Mathf.Log10(PlayerPrefs.GetFloat("bgmVol", 0)) * 20f);
+        mixer.SetFloat("sfxVolume", Mathf.Log10(PlayerPrefs.GetFloat("sfxVol", 0)) * 20f);
+        mixer.SetFloat("voiceVolume", Mathf.Log10(PlayerPrefs.GetFloat("voiceVol", 0)) * 20f);
     }
 
     public void SetBGMVolume(float volume)
