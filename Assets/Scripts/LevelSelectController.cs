@@ -47,27 +47,21 @@ public class LevelSelectController : MonoBehaviour
     public void LoadLevel()
     {
         char gamemode = levelName[0];
-        string sceneName = levelName.Substring(1);
-        if (SceneUtility.GetBuildIndexByScenePath("Assets/Scenes/Levels/" + sceneName + ".unity") == -1)
+        int sceneIndex = levelNum;
+
+        switch (gamemode)
         {
-            Debug.Log("Scene does not exist.");
+            case 'N':
+                StartCoroutine(TitleManager.instance.EnterLevel(sceneIndex, GameManager.GameStates.IN_LEVEL_NORMAL));
+                break;
+            case 'T':
+                StartCoroutine(TitleManager.instance.EnterLevel(sceneIndex, GameManager.GameStates.IN_LEVEL_TIME));
+                break;
+            default:
+                Debug.LogError("Error: Failed to load game state. Game state does not exist.");
+                break;
         }
-        else
-        {
-            switch (gamemode)
-            {
-                case 'N':
-                    GameManager.instance.ChangeGameState(GameManager.GameStates.IN_LEVEL_NORMAL);
-                    break;
-                case 'T':
-                    GameManager.instance.ChangeGameState(GameManager.GameStates.IN_LEVEL_TIME);
-                    break;
-                default:
-                    Debug.LogError("Error: Failed to load game state. Game state does not exist.");
-                    break;
-            }
-            SceneManager.LoadScene(sceneName);
-        }
+        
     }
 
 }
