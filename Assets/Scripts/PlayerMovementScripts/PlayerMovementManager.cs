@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using TMPro;
+using UnityEngine.InputSystem;
 
 public class PlayerMovementManager : MonoBehaviour
 {
@@ -23,14 +24,6 @@ public class PlayerMovementManager : MonoBehaviour
     public GrapplingScript gS;
     public WallClimbingScript wCs;
     public MantlingScript mS;
-
-    [Header("Keybinds")]
-    public KeyCode jumpKey = KeyCode.Space;                 // Jump keybind
-    public KeyCode sprintKey = KeyCode.LeftShift;           // Sprint Keybind
-    public KeyCode crouchKey = KeyCode.C;                   // Crouch Keybind
-    public KeyCode slideKey = KeyCode.LeftControl;          // Slide Keybind
-    public KeyCode swingGrappleKey = KeyCode.Mouse0;        // Swing Grapple Keybind
-    public KeyCode pullGrappleKey = KeyCode.Mouse1;         // Pull Grapple Keybind
 
     [Header("Speed Caps")]
     public float groundedDrag;                              // Drag applied when grounded
@@ -81,8 +74,6 @@ public class PlayerMovementManager : MonoBehaviour
     [HideInInspector] public float horizontalInput;         // Variable for tracking Horizontal input
     [HideInInspector] public float verticalInput;           // Variable for tracking Vertical input
     [HideInInspector] public Vector3 moveDirection;         // Variable for the player's current inputted movement direction
-
-
 
     private void Start()
     {
@@ -194,8 +185,8 @@ public class PlayerMovementManager : MonoBehaviour
     private void GetInput()
     {
         // Get movement input
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        verticalInput = Input.GetAxisRaw("Vertical");
+        horizontalInput = GameManager.instance.moveInput.x;
+        verticalInput = GameManager.instance.moveInput.y;
 
         bool shouldGatherStandardInput = attemptGatherMechanicInput();
 
@@ -232,7 +223,7 @@ public class PlayerMovementManager : MonoBehaviour
         if (gS.isSwingGrappling)
         {
             // If they are grappling and they release the grapple key
-            if (Input.GetKeyUp(swingGrappleKey) && gS.isSwingGrappling)
+            if (GameManager.instance.gSwingReleased && gS.isSwingGrappling)
             {
                 // Stop the Grapple
                 gS.EndSwingGrapple();
@@ -255,7 +246,7 @@ public class PlayerMovementManager : MonoBehaviour
         }
 
         // If they press the jump key while climbing
-        if (Input.GetKeyDown(jumpKey))
+        if (GameManager.instance.jumpPressed)
         {
             // Stop climbing and wall jump
             wCs.StopClimbing();
@@ -269,7 +260,7 @@ public class PlayerMovementManager : MonoBehaviour
 
     private bool lookForStartInputs()
     {
-        if (gS.CanGrapple() && Input.GetKeyDown(pullGrappleKey))
+        if (gS.CanGrapple() && GameManager.instance.gPullPressed)
         {
             gS.StartPullGrapple();
 
@@ -277,7 +268,7 @@ public class PlayerMovementManager : MonoBehaviour
         }
 
         // If not already grappling, can grapple, and they press the grapple key
-        if (gS.CanGrapple() && Input.GetKeyDown(swingGrappleKey))
+        if (gS.CanGrapple() && GameManager.instance.gSwingPressed)
         {
             // Start grapple
             gS.StartSwingGrapple();
@@ -285,14 +276,14 @@ public class PlayerMovementManager : MonoBehaviour
             return true;
         }
 
-        if (Input.GetKeyDown(jumpKey) && mS.canMantle())
+        if (GameManager.instance.jumpPressed && mS.canMantle())
         {
             mS.startMantle();
             return true;
         }
 
         // If they can climb and they press the jump key and they aren't grappling
-        if (Input.GetKeyDown(jumpKey) && wCs.CanClimb())
+        if (GameManager.instance.jumpPressed && wCs.CanClimb())
         {
             // Start climbing
             wCs.StartClimbing();

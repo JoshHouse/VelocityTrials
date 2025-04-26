@@ -11,13 +11,19 @@ public class PlayerCamera : MonoBehaviour
     public WallRunningScript wRs;       // Reference to wall running script for wall running lean
 
     [Header("Sensitivity")]
-    public float sensitivityX = 400f;   // Horizontal sensitivity
-    public float sensitivityY = 400f;   // Vertical Sensitivity
+    private float sensitivity;   // Camera sensitivity
 
     private float rotationX;            // Vertical rotation of the camera
     private float rotationY;            // Horizontal rotation of the camera
     private float rotationZ;            // Lean rotation of the camera
     private float targetRotationZ;      // Target lean rotation of the camera for lean smoothing
+
+
+    private void Awake()
+    {
+        // On awake, set both the sensitivity variable to the sensitivity value stored in GameManager
+        sensitivity = GameManager.instance.pSensitivity;
+    }
 
     void Start()
     {
@@ -29,8 +35,8 @@ public class PlayerCamera : MonoBehaviour
     void Update()
     {
         // Get mouse input
-        float mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensitivityX;
-        float mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensitivityY;
+        float mouseX = Input.GetAxisRaw("Mouse X") * Time.deltaTime * sensitivity;
+        float mouseY = Input.GetAxisRaw("Mouse Y") * Time.deltaTime * sensitivity;
 
         // Rotate camera
         rotationY += mouseX;

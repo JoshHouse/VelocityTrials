@@ -50,7 +50,7 @@ public class GroundedMovementScript : MonoBehaviour
     public void GetGroundedInput()
     {
         // Call jump if flag is ready and jump is pressed
-        if (Input.GetKey(pMm.jumpKey) && readyToJump)
+        if (GameManager.instance.jumpPressed && readyToJump)
         {
             // If sliding, stop sliding when jumping
             if (sS.isSliding)
@@ -68,14 +68,14 @@ public class GroundedMovementScript : MonoBehaviour
         }
 
         // Starts slide as long as the player is inputting a movement direction, presses the slide key, and isn't already sliding
-        else if (Input.GetKeyDown(pMm.slideKey) &&
+        else if (GameManager.instance.slidePressed &&
                 (pMm.horizontalInput != 0 || pMm.verticalInput != 0) &&
                 !sS.isSliding)
         {
             sS.StartSlide();
         }
 
-        else if (Input.GetKey(pMm.slideKey) &&
+        else if (GameManager.instance.slideHeld &&
             (pMm.horizontalInput != 0 || pMm.verticalInput != 0) &&
             !sS.isSliding &&
             pMm.moveSpeed > pMm.sprintSpeed)
@@ -84,14 +84,14 @@ public class GroundedMovementScript : MonoBehaviour
         }
 
         // Stops slide if the user releases the slide key and is sliding
-        else if (Input.GetKeyUp(pMm.slideKey) &&
+        else if (GameManager.instance.slideReleased &&
             sS.isSliding)
         {
             sS.StopSlideWithMomentum();
         }
 
         // Sets y scale to crouch scale if holding crouch button, not jumping, and not sliding
-        else if (Input.GetKey(pMm.crouchKey) &&
+        else if (GameManager.instance.crouchHeld &&
             readyToJump &&
             !sS.isSliding)
         {
@@ -99,7 +99,7 @@ public class GroundedMovementScript : MonoBehaviour
         }
 
         // Resets y scale if user releases the crouch key
-        else if (Input.GetKeyUp(pMm.crouchKey))
+        else if (GameManager.instance.crouchReleased)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
         }
@@ -143,7 +143,7 @@ public class GroundedMovementScript : MonoBehaviour
         }
 
         // If they are holding crouch and not sliding
-        if (Input.GetKey(pMm.crouchKey))
+        if (GameManager.instance.crouchHeld)
         {
             // Set their state
             pMm.movementState = PlayerMovementManager.MovementState.crouching;
@@ -153,7 +153,7 @@ public class GroundedMovementScript : MonoBehaviour
         }
 
         // If they are holding sprint key
-        if (Input.GetKey(pMm.sprintKey))
+        if (GameManager.instance.sprintHeld)
         {
             // Set their state
             pMm.movementState = PlayerMovementManager.MovementState.sprinting;

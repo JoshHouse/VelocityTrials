@@ -33,7 +33,7 @@ public class AirborneMovementScript : MonoBehaviour
         wRs.CheckForWall();
 
         // If wall running and presses the jump key
-        if (wRs.isWallRunning && Input.GetKeyDown(pMm.jumpKey))
+        if (wRs.isWallRunning && GameManager.instance.jumpPressed)
         {
             // Stop wall run
             wRs.StopWallRun();
@@ -43,7 +43,7 @@ public class AirborneMovementScript : MonoBehaviour
         }
 
         // If player pressed jump key and can start a wall run
-        if (Input.GetKeyDown(pMm.jumpKey) && wRs.CanStartWallRun())
+        if (GameManager.instance.jumpPressed && wRs.CanStartWallRun())
         {
             // Start wall run
             wRs.StartWallRun();
@@ -60,7 +60,7 @@ public class AirborneMovementScript : MonoBehaviour
         }
 
         // if double jump is ready, the readyToJump flag in the grounded movement script is true, and user inputs jump then jump
-        if (doubleJumpReady && gMs.readyToJump && Input.GetKeyDown(pMm.jumpKey))
+        if (doubleJumpReady && gMs.readyToJump && GameManager.instance.jumpPressed)
             Jump();
     }
 
