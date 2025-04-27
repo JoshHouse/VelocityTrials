@@ -22,15 +22,18 @@ public class LevelExit : MonoBehaviour
     // Upon reaching Level Exit Door, load the next level and store the current best time (if better)
     private void OnTriggerEnter(Collider other)
     {
-        if (thisSceneIndex + 1 < builtScenesCount)
+        if (other.CompareTag("Player"))
         {
-            SceneManager.LoadScene(thisSceneIndex + 1);
-        }
-        // If next Scene is not in build settings, load Main Menu
-        else
-        {
-            Debug.Log("Loading Main Menu");
-            SceneManager.LoadScene(0);
+            if (thisSceneIndex + 1 < builtScenesCount)
+            {
+                SceneManager.LoadScene(thisSceneIndex + 1);
+            }
+            // If next Scene is not in build settings, load Main Menu
+            else
+            {
+                Debug.Log("Loading Main Menu");
+                SceneManager.LoadScene(0);
+            }
         }
     }
 
