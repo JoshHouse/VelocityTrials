@@ -7,17 +7,11 @@ public class KillBarrier : MonoBehaviour
     // Reference to player that can be "killed"
     public GameObject player;
 
-    // Reference to player's camera, for rotation resetting
-    public GameObject playerCamera;
-
     // Particles that shoot upwards when the player touches this Kill Barrier, simulating exploded pieces of Dummy2048
     public ParticleSystem deathParticles;
 
     // Position of player when Start() is called (where they are loaded in)
     private Vector3 spawnPos;
-
-    // Rotation of player when Start() is called (how they are when loaded in)
-    private Quaternion spawnRotation;
 
     // Start is called before the first frame update
     void Start()
@@ -28,21 +22,14 @@ public class KillBarrier : MonoBehaviour
             player = GameObject.Find("Player");
         }
 
-        // Find playerCamera if not initialized in Unity Editor
-        if (playerCamera == null)
-        {
-            playerCamera = GameObject.Find("PlayerCamera");
-        }
-
         // Set particles to default particles if none specified
         if (deathParticles == null)
         {
             deathParticles = GetComponent<ParticleSystem>();
         }
 
-        // Get player's spawn position and rotation
+        // Get player's spawn position
         spawnPos = player.transform.position;
-        spawnRotation = playerCamera.transform.rotation;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -57,7 +44,6 @@ public class KillBarrier : MonoBehaviour
             // Respawn player and nullify all velocity
             player.GetComponent<Rigidbody>().velocity = Vector3.zero;
             player.transform.position = spawnPos;
-            playerCamera.transform.rotation = spawnRotation;
         }
     }
 }
