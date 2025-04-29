@@ -46,6 +46,13 @@ public class VolumeSliders : MonoBehaviour
         voiceSlider.value = PlayerPrefs.GetFloat("voiceVol", 0);
     }
 
+    public void RestoreDefaults()
+    {
+        bgmSlider.value = bgmSlider.maxValue;
+        sfxSlider.value = sfxSlider.maxValue;
+        voiceSlider.value = voiceSlider.maxValue;
+    }
+
     public void ToggleMute()
     {
         StartCoroutine(MuteRoutine(PlayerPrefs.GetInt("mute"))); // Call the coroutine for lerping

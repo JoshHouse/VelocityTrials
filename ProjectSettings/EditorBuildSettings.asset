@@ -13,9 +13,15 @@ EditorBuildSettings:
     guid: 7091799944740304fb2c0ae9b4ee7dbe
   - enabled: 1
     path: Assets/Scenes/Levels/WallRunningBeginner.unity
-    guid: df0f35b9d1dfaeb4eae4e66252ce4313
+    guid: 1294882472ae01840811d879032af244
   - enabled: 1
     path: Assets/Scenes/Levels/WallRunningAdvanced.unity
     guid: 606123cf6b2be244584b537e3ea36967
+  - enabled: 1
+    path: Assets/Scenes/Levels/FearOfHeights.unity
+    guid: 95790410e170d894bb723f38b9313826
+  - enabled: 1
+    path: Assets/Scenes/Levels/UpDownUp.unity
+    guid: df0f35b9d1dfaeb4eae4e66252ce4313
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 8c2e9e0910f4cc6428889c7dd852dbbf, type: 2}

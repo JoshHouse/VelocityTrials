@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 public class GameManager : MonoBehaviour
 {
 
-    public static GameManager instance;
+    public static GameManager instance; // Singleton of the GameManager class
     public enum GameStates // The various states that the game can be in during operation
     {
         OPENING = 0,
@@ -19,26 +19,54 @@ public class GameManager : MonoBehaviour
         GAME_OVER = 6,
     }
     public enum LevelType { NORMAL, TIME } // The two types of levels tha there can be
-    public int gameState { get; private set; }
-    public float pSensitivity { get; private set; }
+    public int gameState { get; private set; } // Controls what state the overall game is in, which can only be set in this class
+    public float pSensitivity { get; private set; } // Controls the sensitivity of the player's camera
 
-    public Vector2 pMovement { get; private set; }
-    public bool pJumping { get; private set; }
-    public bool pCrouching { get; private set; }
-    public bool pSprinting { get; private set; }
-    public bool pSliding { get; private set; }
-    public bool pGrappling { get; private set; }
+    /*---------------------------------Input Manager Variables--------------------------------------*/
+    private PlayerInput pInput;                             // Player Input component
+    private InputAction moveAction;                         // Input action for movement
+    private InputAction jumpAction;                         // Input action for jumping
+    private InputAction sprintAction;                       // Input action for sprinting
+    private InputAction crouchAction;                       // Input action for crouching
+    private InputAction slideAction;                        // Input action for sliding
+    private InputAction grapplePullAction;                  // Input action for grappling (pulling)
+    private InputAction grappleSwingAction;                 // Input action for grappling (swinging)
 
-    PlayerInput playerInput;
-    private InputAction moveAction;
-    private InputAction jumpAction;
-    private InputAction sprintAction;
-    private InputAction crouchAction;
-    private InputAction slideAction;
-    private InputAction grappleAction;
+    public Vector2 moveInput { get; private set; }          // Holds button presses for movement and converts them to the required floats
+                        /*------Jumping------*/
+    public bool jumpPressed { get; private set; }           // Jump button was pressed
+    public bool jumpHeld { get; private set; }              // Jump button was held
+    public bool jumpReleased { get; private set; }          // Jump button was released
+
+                        /*------Sprinting------*/
+    public bool sprintPressed { get; private set; }         // Sprint button was pressed
+    public bool sprintHeld { get; private set; }            // Sprint button was held
+    public bool sprintReleased { get; private set; }        // Sprint button was released
+
+                        /*------Crouching------*/
+    public bool crouchPressed { get; private set; }         // Crouch button was pressed
+    public bool crouchHeld { get; private set; }            // Crouch button was held
+    public bool crouchReleased { get; private set; }        // Crouch button was released
+
+                       /*------Sliding------*/
+    public bool slidePressed { get; private set; }          // Slide button was pressed
+    public bool slideHeld { get; private set; }             // Slide button was held
+    public bool slideReleased { get; private set; }         // Slide button was released
+
+                        /*------Grapple (Pull)------*/
+    public bool gPullPressed { get; private set; }          // Grapple (Pull) button was pressed
+    public bool gPullHeld { get; private set; }             // Grapple (Pull) button was held
+    public bool gPullReleased { get; private set; }         // Grapple (Pull) button was released
+
+                        /*------Grapple (Swing)------*/
+    public bool gSwingPressed { get; private set; }         // Grapple (Swing) button was pressed
+    public bool gSwingHeld { get; private set; }            // Grapple (Swing) button was held
+    public bool gSwingReleased { get; private set; }        // Grapple (Swing) button was released
+    /*----------------------------------------------------------------------------------------------*/
 
     private void Awake() 
     {
+        /*------Singleton Initialization-------*/
         if (instance == null)
         {
             instance = this; // Instantiate this instance as the only instance of Game Manager
@@ -50,8 +78,8 @@ public class GameManager : MonoBehaviour
         }
 
         // On awake, go ahead and fetch the player input component, then use it to set the player's actions for their controls
-        playerInput = GetComponent<PlayerInput>();
-        SetPlayerActions();
+        pInput = GetComponent<PlayerInput>();
+        SetUpInputActions();
         pSensitivity = PlayerPrefs.GetFloat("Sensitivity", 800);
     }
 
@@ -71,7 +99,48 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        UpdateInputs(); // Updates each input variable every frame
+    }
+
+    private void SetUpInputActions()
+    {
+        // Sets each of the InputAction by finding the specified name of each action in the Player Input component
+        moveAction = pInput.actions["Movement"];
+        jumpAction = pInput.actions["Jumping"];
+        sprintAction = pInput.actions["Sprinting"];
+        crouchAction = pInput.actions["Crouching"];
+        slideAction = pInput.actions["Sliding"];
+        grapplePullAction = pInput.actions["Grapple (Pull)"];
+        grappleSwingAction = pInput.actions["Grapple (Swing)"];
+    }
+
+    private void UpdateInputs()
+    {
+        moveInput = moveAction.ReadValue<Vector2>(); // Reads the x and y movements and stores them in the vector2 variable
+
+        // Returns true if the specified key was pressed down this frame
+        jumpPressed = jumpAction.WasPressedThisFrame();
+        sprintPressed = sprintAction.WasPressedThisFrame();
+        crouchPressed = crouchAction.WasPressedThisFrame();
+        slidePressed = slideAction.WasPressedThisFrame();
+        gPullPressed = grapplePullAction.WasPressedThisFrame();
+        gSwingPressed = grappleSwingAction.WasPressedThisFrame();
+
+        // Returns true if the specified key is being held down
+        jumpHeld = jumpAction.IsPressed();
+        sprintHeld = sprintAction.IsPressed();
+        crouchHeld = crouchAction.IsPressed();
+        slideHeld = slideAction.IsPressed();
+        gPullHeld = grapplePullAction.IsPressed();
+        gSwingHeld = grappleSwingAction.IsPressed();
+
+        // Returns true if the specified key was released this frame
+        jumpReleased = jumpAction.WasReleasedThisFrame();
+        sprintReleased = sprintAction.WasReleasedThisFrame();
+        crouchReleased = crouchAction.WasReleasedThisFrame();
+        slideReleased = slideAction.WasReleasedThisFrame();
+        gPullReleased = grapplePullAction.WasReleasedThisFrame();
+        gSwingReleased = grappleSwingAction.WasReleasedThisFrame();
     }
 
     public void ChangeGameState(GameStates state)
@@ -88,25 +157,5 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.SetFloat("Sensitivity", value);
         pSensitivity = PlayerPrefs.GetFloat("Sensitivity");
-    }
-
-    private void SetPlayerActions()
-    {
-        moveAction = playerInput.actions["Movement"];
-        jumpAction = playerInput.actions["Jumping"];
-        sprintAction = playerInput.actions["Sprinting"];
-        crouchAction = playerInput.actions["Crouching"];
-        slideAction = playerInput.actions["Sliding"];
-        grappleAction = playerInput.actions["Grappling Hook"];
-    }
-
-    private void UpdatePlayerActions()
-    {
-        pMovement = moveAction.ReadValue<Vector2>();
-        pJumping = jumpAction.WasPressedThisFrame();
-        pCrouching = crouchAction.IsPressed();
-        pSprinting = sprintAction.IsPressed();
-        pSliding = slideAction.IsPressed();
-        pGrappling = grappleAction.IsPressed();
     }
 }
