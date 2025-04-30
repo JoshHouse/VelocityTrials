@@ -1334,13 +1334,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 133874548189344960, guid: 09209dbc02a4e60449c4936767cb941a, type: 3}
       propertyPath: m_text
-      value: Congratulations!
+      value: 'Congratulations!
+
+        -Overseer'
       objectReference: {fileID: 0}
     - target: {fileID: 812136081603770203, guid: 09209dbc02a4e60449c4936767cb941a, type: 3}
       propertyPath: m_text
-      value: 'Run alongside walls like this to wall-run
+      value: 'Jump alongside walls like this to wall-run!
 
-'
+        -Overseer'
       objectReference: {fileID: 0}
     - target: {fileID: 6033199061576781461, guid: 09209dbc02a4e60449c4936767cb941a, type: 3}
       propertyPath: m_LocalPosition.x
