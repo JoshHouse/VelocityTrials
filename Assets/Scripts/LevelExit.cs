@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,7 +27,16 @@ public class LevelExit : MonoBehaviour
         {
             if (thisSceneIndex + 1 < builtScenesCount)
             {
-                SceneManager.LoadScene(thisSceneIndex + 1);
+                GameManager.GameStates currState = (GameManager.GameStates) Enum.GetValues(typeof(GameManager.GameStates)).GetValue((GameManager.instance.gameState));
+                if (currState == GameManager.GameStates.IN_LEVEL_NORMAL)
+                {
+                    PlayerPrefs.SetInt("NLevel-" + (thisSceneIndex + 1), 1);
+                    PlayerPrefs.SetInt("TLevel-" + thisSceneIndex, 1);
+                } else if (currState == GameManager.GameStates.IN_LEVEL_TIME)
+                {
+                    PlayerPrefs.SetInt("TLevel-" + thisSceneIndex + 1, 1);
+                }
+                    SceneManager.LoadScene(thisSceneIndex + 1);
             }
             // If next Scene is not in build settings, load Main Menu
             else
