@@ -91,7 +91,10 @@ public class GameManager : MonoBehaviour
         gameState = (int) GameStates.OPENING;
         if (gameState == (int)GameStates.OPENING)
         {
-            StartCoroutine(TitleManager.instance.OpeningAnimation(1f));
+            if (TitleManager.instance != null)
+            {
+                StartCoroutine(TitleManager.instance.OpeningAnimation(1f));
+            }
         }
 
     }
