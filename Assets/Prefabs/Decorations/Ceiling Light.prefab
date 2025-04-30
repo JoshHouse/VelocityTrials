@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1260334196895295885}
-  m_Layer: 22
+  m_Layer: 0
   m_Name: Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3178531852056257380}
   - component: {fileID: 3916956077362985548}
-  m_Layer: 22
+  m_Layer: 0
   m_Name: 'Reflect Light '
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -137,7 +137,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2511312329889568853}
   - component: {fileID: 3955727085621010774}
-  m_Layer: 22
+  m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -233,7 +233,7 @@ GameObject:
   - component: {fileID: 3711695725880162010}
   - component: {fileID: 4672368823537233397}
   - component: {fileID: 3824284422904917237}
-  m_Layer: 22
+  m_Layer: 0
   m_Name: Ceiling Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -339,7 +339,7 @@ GameObject:
   - component: {fileID: 3206162173000530587}
   - component: {fileID: 1018881037874322743}
   - component: {fileID: 205801546518785224}
-  m_Layer: 22
+  m_Layer: 0
   m_Name: Light Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
