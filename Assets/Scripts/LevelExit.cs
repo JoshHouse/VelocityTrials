@@ -27,16 +27,24 @@ public class LevelExit : MonoBehaviour
         {
             if (thisSceneIndex + 1 < builtScenesCount)
             {
+                // Check the games current state
                 GameManager.GameStates currState = (GameManager.GameStates) Enum.GetValues(typeof(GameManager.GameStates)).GetValue((GameManager.instance.gameState));
-                if (currState == GameManager.GameStates.IN_LEVEL_NORMAL)
+                if (currState == GameManager.GameStates.IN_LEVEL_NORMAL) // Player is currently in a normal level
                 {
                     PlayerPrefs.SetInt("NLevel-" + (thisSceneIndex + 1), 1);
                     PlayerPrefs.SetInt("TLevel-" + thisSceneIndex, 1);
-                } else if (currState == GameManager.GameStates.IN_LEVEL_TIME)
-                {
-                    PlayerPrefs.SetInt("TLevel-" + thisSceneIndex + 1, 1);
-                }
                     SceneManager.LoadScene(thisSceneIndex + 1);
+                } else if (currState == GameManager.GameStates.IN_LEVEL_TIME) // Play is currently in a time attack level
+                {
+                    if (PlayerPrefs.GetInt("TLevel-" + thisSceneIndex) == 1) // The previous time attack level has already been unlocked
+                    {
+                        SceneManager.LoadScene(thisSceneIndex + 1); // Load into that next level
+                    }
+                    else // The previous time attack level has not been unlocked
+                    {
+                        SceneManager.LoadScene(0); // Load the main menu
+                    }
+                }
             }
             // If next Scene is not in build settings, load Main Menu
             else
