@@ -18,15 +18,11 @@ public class PlayerCamera : MonoBehaviour
     private float rotationZ;            // Lean rotation of the camera
     private float targetRotationZ;      // Target lean rotation of the camera for lean smoothing
 
-
-    private void Awake()
-    {
-        // On awake, set both the sensitivity variable to the sensitivity value stored in GameManager
-        sensitivity = GameManager.instance.pSensitivity;
-    }
-
     void Start()
     {
+        // On start, set both the sensitivity variable to the sensitivity value stored in GameManager
+        sensitivity = GameManager.instance.pSensitivity;
+
         Cursor.lockState = CursorLockMode.Locked;   // Locks the cursor to the center of the screen
         Cursor.visible = false;                     // Makes the cursor invisible
     }

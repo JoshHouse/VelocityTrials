@@ -74,7 +74,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Destroy(instance); // If another instance of Game Manager exists, destroy this instance
+            Destroy(gameObject); // If another instance of Game Manager exists, destroy this gameObject
         }
 
         // On awake, go ahead and fetch the player input component, then use it to set the player's actions for their controls
