@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3353208259665483174}
   - component: {fileID: 205587084990565477}
   - component: {fileID: 4201281197992671607}
-  m_Layer: 0
+  m_Layer: 23
   m_Name: Slippery-Wall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
