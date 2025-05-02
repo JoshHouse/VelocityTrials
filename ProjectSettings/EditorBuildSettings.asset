@@ -56,5 +56,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Levels/UTurn.unity
     guid: 0c31ebdc53ea5c44ba0ba14ca6270279
+  - enabled: 1
+    path: Assets/Scenes/Levels/SquareSlide.unity
+    guid: ed075520a24ddf54989402107ef9a1b8
+  - enabled: 1
+    path: Assets/Scenes/Levels/OneWallAtATime.unity
+    guid: aa9b7ed02f911fe48b5e4fc8112eee64
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 8c2e9e0910f4cc6428889c7dd852dbbf, type: 2}
