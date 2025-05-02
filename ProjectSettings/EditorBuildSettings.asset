@@ -24,6 +24,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Levels/MantlingTutorial.unity
     guid: 602f3b6d43b5c9548ab173dd4365eb26
   - enabled: 1
+    path: Assets/Scenes/Levels/WallClimbingTutorial.unity
+    guid: f049526e761d82340b757548513cdc29
+  - enabled: 1
     path: Assets/Scenes/Levels/WallRunningTutorial.unity
     guid: 7091799944740304fb2c0ae9b4ee7dbe
   - enabled: 1

@@ -1047,8 +1047,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 812136081603770203, guid: 09209dbc02a4e60449c4936767cb941a, type: 3}
       propertyPath: m_text
-      value: "Use spacebar twice to double-Jump, but you need a platform to refill
-        them \n-Overseer\n"
+      value: "Use spacebar again to double-Jump, you need a platform to refill your
+        jumps \n-Overseer\n"
       objectReference: {fileID: 0}
     - target: {fileID: 812136081603770203, guid: 09209dbc02a4e60449c4936767cb941a, type: 3}
       propertyPath: m_fontSize
