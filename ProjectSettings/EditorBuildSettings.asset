@@ -80,5 +80,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Levels/TowerWall.unity
     guid: b8e7740a38a6a7548b6a33669f7f5aab
+  - enabled: 1
+    path: Assets/Scenes/Levels/BareBones.unity
+    guid: 2f65c32b663520042857e1a3ed73a521
+  - enabled: 1
+    path: Assets/Scenes/Levels/FigureC.unity
+    guid: 8c02c8b74492c004db7449ccb28a939e
+  - enabled: 1
+    path: Assets/Scenes/Levels/Stairs.unity
+    guid: 1960fe1e0f5447344b38f2ba4ad8b107
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 8c2e9e0910f4cc6428889c7dd852dbbf, type: 2}
