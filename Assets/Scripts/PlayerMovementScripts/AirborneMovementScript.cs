@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class AirborneMovementScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;       // Reference to player movement manager
     public GroundedMovementScript gMs;      // Reference to grounded movement script for transition interactions
@@ -110,6 +113,8 @@ public class AirborneMovementScript : MonoBehaviour
 
         // Add force in the player's movement direction
         pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f * airMultiplier, ForceMode.Force);
+
+        animManager.PlayAnim("Airborne");
     }
 
     /*
@@ -127,6 +132,8 @@ public class AirborneMovementScript : MonoBehaviour
 
         // Jumping uses your double jump
         doubleJumpReady = false;
+
+        animManager.PlayAnim("Jump");
 
         // Reset y velocity so jump is a consistent height
         pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, 0f, pMm.playerRigidBody.velocity.z);

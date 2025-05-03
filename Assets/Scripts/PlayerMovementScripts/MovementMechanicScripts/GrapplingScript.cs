@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class GrapplingScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;
 
@@ -100,6 +103,7 @@ public class GrapplingScript : MonoBehaviour
         predictionVisualizer.transform.position = pMm.orientation.position;
         predictionVisualizer.SetActive(false);
 
+        animManager.PlayAnim("ShootGrapple");
 
         // Set grappling flag to true
         isSwingGrappling = true;
@@ -157,6 +161,8 @@ public class GrapplingScript : MonoBehaviour
         predictionVisualizer.SetActive(false);
 
         pMm.playerRigidBody.drag = 0f;
+
+        animManager.PlayAnim("ShootGrapple");
 
         isPullGrappling = true;
 

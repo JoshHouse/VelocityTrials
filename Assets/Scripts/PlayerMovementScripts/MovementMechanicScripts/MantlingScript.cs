@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class MantlingScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;       // Reference to the player movement manager
 
@@ -35,6 +38,8 @@ public class MantlingScript : MonoBehaviour
     {
         pMm.playerRigidBody.useGravity = false;
         pMm.playerRigidBody.drag = 0f;
+
+        animManager.PlayAnim("Mantle");
 
         isMantling = true;
 

@@ -10,6 +10,7 @@ public class PlayerMovementManager : MonoBehaviour
     [Header("Initialization")]
     public Transform orientation;                           // Reference to the player's orientation
     public Rigidbody playerRigidBody;                       // Reference to the player's rigid body
+    public AnimationManager animManager;
     private Transform body;                                 // Gets the body child object in the start function
     private Renderer bodyRenderer;                          // Gets the renderer of the body in the start function
     [HideInInspector] public float bodyLength;              // Gets the length of the body after rendering from the renderer
@@ -129,6 +130,8 @@ public class PlayerMovementManager : MonoBehaviour
         // Rotates the players arm while grappling
         gS.RotateArmOnGrapple();
 
+        animManager.checkForPlayingAnimation();
+
         // Updates the ui values
         UpdateUI();
 
@@ -149,6 +152,15 @@ public class PlayerMovementManager : MonoBehaviour
             {
                 StopCoroutine(speedLerpCoroutine);
                 speedLerpCoroutine = null;
+            }
+
+            if (gS.isSwingGrappling)
+            {
+                animManager.PlayAnim("SwingGrapple");
+            }
+            else
+            {
+                animManager.PlayAnim("PullGrapple");
             }
 
 
