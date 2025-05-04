@@ -179,11 +179,14 @@ MonoBehaviour:
   walkingSound: {fileID: 8300000, guid: 54f819fd18de08e48830e012d3ef61fa, type: 3}
   sprintingSound: {fileID: 8300000, guid: acbf8f4c1f442b24d87b721af3c57966, type: 3}
   crouchingSound: {fileID: 8300000, guid: c3dadbdc4c9a7ae459818281828152f9, type: 3}
+  slidingSound: {fileID: 0}
   airborneSound: {fileID: 8300000, guid: c616e0b90d26dd94585d9bc703ea8993, type: 3}
   landingSound: {fileID: 8300000, guid: 20e0aa6b2d796f34f83e0ca9c7efb1c7, type: 3}
   wallrunningSound: {fileID: 8300000, guid: 139fcdda1ec0c2a42b037a5c4b8e6a5d, type: 3}
-  grapplingSound: {fileID: 8300000, guid: c3dadbdc4c9a7ae459818281828152f9, type: 3}
+  wallClimbingSound: {fileID: 0}
+  grappleSound: {fileID: 8300000, guid: 3c528082b0670ad409f15f8953b9b5d9, type: 3}
   movementVolume: 0.7
+  environmentVolume: 0.7
 --- !u!1 &5420668318311668543
 GameObject:
   m_ObjectHideFlags: 0
