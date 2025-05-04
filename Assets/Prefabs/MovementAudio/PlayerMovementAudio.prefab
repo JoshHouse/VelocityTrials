@@ -174,7 +174,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b1ed7546c86d11438e379700692ddb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSource: {fileID: 0}
+  movementSource: {fileID: 3460872350898759143}
   environmentSource: {fileID: 4637774247392961420}
   walkingSound: {fileID: 8300000, guid: 54f819fd18de08e48830e012d3ef61fa, type: 3}
   sprintingSound: {fileID: 8300000, guid: acbf8f4c1f442b24d87b721af3c57966, type: 3}

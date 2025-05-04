@@ -10,6 +10,9 @@ public class KillBarrier : MonoBehaviour
     // Particles that shoot upwards when the player touches this Kill Barrier, simulating exploded pieces of Dummy2048
     public ParticleSystem deathParticles;
 
+    // AudioSource that plays explosion sound upon death
+    private AudioSource explosionAudioSource;
+
     // Position of player when Start() is called (where they are loaded in)
     private Vector3 spawnPos;
 
@@ -28,6 +31,9 @@ public class KillBarrier : MonoBehaviour
             deathParticles = GetComponent<ParticleSystem>();
         }
 
+        // Set explosionAudioSource to attached AudioSource
+        explosionAudioSource = GetComponent<AudioSource>();
+
         // Get player's spawn position
         spawnPos = player.transform.position;
     }
@@ -40,6 +46,9 @@ public class KillBarrier : MonoBehaviour
             // Play particle effect at death position
             deathParticles.transform.position = player.transform.position;
             deathParticles.Play();
+
+            // Play explosion SFX
+            explosionAudioSource.Play();
 
             // Respawn player and nullify all velocity
             player.GetComponent<Rigidbody>().velocity = Vector3.zero;
