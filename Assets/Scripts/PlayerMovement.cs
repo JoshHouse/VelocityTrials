@@ -945,4 +945,10 @@ public class PlayerMovement : MonoBehaviour
         // Resets the players scale to their default scale
         transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
     }
+
+    // Public accessor for grounded state
+    public bool IsGrounded()
+    {
+        return grounded;
+    }
 }
