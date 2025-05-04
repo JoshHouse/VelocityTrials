@@ -19,7 +19,7 @@ public class FloorBreak : MonoBehaviour
     }
 
     /// <summary>
-    /// Simulates the base of the platform breaking roughtly a second after the player lands on it.
+    /// Simulates the base of the platform breaking roughtly less than half a second after the player lands on it.
     /// </summary>
     /// <returns></returns>
     private IEnumerator BreakPlatform()
@@ -29,7 +29,7 @@ public class FloorBreak : MonoBehaviour
 
         AudioManager.instance.PlaySFXClip(breakSFX, transform);
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.4f);
         
         while (currTime < moveTime)
         {
@@ -39,7 +39,12 @@ public class FloorBreak : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.25f);
-        Destroy(floorBase); // Floor should be out of sight, so destroy the game object
+        floorBase.SetActive(false); // Floor should be out of sight past the kill barrier, so hide the game object
+
+        yield return new WaitForSeconds(3f);
+        floorBase.transform.position = startV3; // Return floor to starting position
+        gameObject.GetComponent<BoxCollider>().enabled = true; // Platform has reappeared and is "stable", so reactivate the collider
+        floorBase.SetActive(true); // Unhide the game object
     }
 
 }
