@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class GroundedMovementScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;               // Reference to the Player Movement Manager Script
     public AirborneMovementScript aMs;              // Reference to the airborne movement script for interactions in transitions
@@ -96,6 +99,7 @@ public class GroundedMovementScript : MonoBehaviour
             !sS.isSliding)
         {
             transform.localScale = new Vector3(transform.localScale.x, crouchYscale, transform.localScale.z);
+            
         }
 
         // Resets y scale if user releases the crouch key
@@ -149,6 +153,15 @@ public class GroundedMovementScript : MonoBehaviour
             pMm.movementState = PlayerMovementManager.MovementState.crouching;
             // Set their max speed to crouchSpeed
             pMm.desiredMoveSpeed = pMm.crouchSpeed;
+
+            if(pMm.horizontalInput == 0 && pMm.verticalInput == 0)
+            {
+                animManager.PlayAnim("CrouchIdle");
+            }
+            else
+            {
+                animManager.PlayAnim("CrouchWalk");
+            }
             return;
         }
 
@@ -159,13 +172,34 @@ public class GroundedMovementScript : MonoBehaviour
             pMm.movementState = PlayerMovementManager.MovementState.sprinting;
             // Set their max speed to sprint speed
             pMm.desiredMoveSpeed = pMm.sprintSpeed;
+
+            if (pMm.horizontalInput == 0 && pMm.verticalInput == 0)
+            {
+                animManager.PlayAnim("GrIdle");
+            }
+            else
+            {
+                animManager.PlayAnim("Sprint");
+            }
             return;
         }
 
-        // If not sprinting, sliding, or crouching, they are walking so set their state
-        pMm.movementState = PlayerMovementManager.MovementState.walking;
-        // Set their max speed to walk speed
-        pMm.desiredMoveSpeed = pMm.walkSpeed;
+        if (!(pMm.horizontalInput == 0) || !(pMm.verticalInput == 0))
+        {
+            // If not sprinting, sliding, or crouching, they are walking so set their state
+            pMm.movementState = PlayerMovementManager.MovementState.walking;
+            // Set their max speed to walk speed
+            pMm.desiredMoveSpeed = pMm.walkSpeed;
+
+            animManager.PlayAnim("Walk");
+            return;
+        }
+
+
+        pMm.movementState = PlayerMovementManager.MovementState.idle;
+        pMm.desiredMoveSpeed = 0f;
+        animManager.PlayAnim("GrIdle");
+
 
     }
 
@@ -190,11 +224,23 @@ public class GroundedMovementScript : MonoBehaviour
         if (OnSlope() && !jumpOnSlope)
         {
             pMm.playerRigidBody.AddForce(GetSlopeMovementDirection(pMm.moveDirection) * pMm.moveSpeed * 20f, ForceMode.Force);
+            if (pMm.moveDirection != Vector3.zero)
+            {
+                pMm.playerModelTransform.rotation = Quaternion.LookRotation(-GetSlopeMovementDirection(pMm.moveDirection));
+            }
             return;
         }
 
         // If not on slope or jumping off the slope, add flat force
         pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f, ForceMode.Force);
+
+        if (pMm.moveDirection != Vector3.zero)
+        {
+            pMm.playerModelTransform.rotation = Quaternion.LookRotation(-pMm.moveDirection);
+        }
+
+
+
     }
 
     /*
@@ -239,6 +285,8 @@ public class GroundedMovementScript : MonoBehaviour
         readyToJump = false;
 
         jumpOnSlope = true;
+
+        animManager.PlayAnim("Jump");
 
         // Reset y velocity so jump is a consistent height
         pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, 0f, pMm.playerRigidBody.velocity.z);

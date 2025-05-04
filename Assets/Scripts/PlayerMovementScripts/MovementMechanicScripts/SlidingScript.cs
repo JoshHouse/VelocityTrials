@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class SlidingScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Scripts")]
     public PlayerMovementManager pMm;           // Reference to the player movement manager
     public GroundedMovementScript gMs;          // Reference to grounded movement script since sliding can only be performed grounded
@@ -33,6 +36,8 @@ public class SlidingScript : MonoBehaviour
     {
         // Set sliding flag to true
         isSliding = true;
+
+        animManager.PlayAnim("Slide");
 
         // Shrink y scale
         transform.localScale = new Vector3(transform.localScale.x, gMs.crouchYscale, transform.localScale.z);

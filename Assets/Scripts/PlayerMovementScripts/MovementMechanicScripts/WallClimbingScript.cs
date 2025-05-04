@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class WallClimbingScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;               // Reference to the player movement manager
     public GroundedMovementScript gMs;              // Reference to the grounded movement script
@@ -65,6 +68,8 @@ public class WallClimbingScript : MonoBehaviour
         // Set the is climbing variable to true
         isClimbing = true;
 
+        animManager.PlayAnim("Climb");
+
         // Reset the climb timer to the max climb time
         climbTimer = maxClimbTime;
 
@@ -79,6 +84,8 @@ public class WallClimbingScript : MonoBehaviour
         {
             // Manually set the y velocity of the player (more simple than adding force since dynamic upward movement isnt necessary for climbing)
             pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, pMm.wallClimbUpSpeed, pMm.playerRigidBody.velocity.z);
+
+            pMm.playerModelTransform.rotation = Quaternion.LookRotation(frontWallHit.normal);
 
             // Decrease the timer
             climbTimer -= Time.deltaTime;
@@ -115,6 +122,8 @@ public class WallClimbingScript : MonoBehaviour
 
         // Applies wall jump up force and wall jump side force
         Vector3 totalJumpForce = transform.up * wallJumpUpForce + wallNormal * wallJumpBackForce;
+
+        animManager.PlayAnim("WallJumpBack");
 
         // Resets the player's y velocity for consistent jump height
         pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, 0f, pMm.playerRigidBody.velocity.z);

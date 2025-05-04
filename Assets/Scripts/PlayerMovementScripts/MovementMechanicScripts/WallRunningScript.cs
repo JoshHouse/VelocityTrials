@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class WallRunningScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;               // Reference to the player movement manager
     public AirborneMovementScript aMs;              // Reference to the airborne movement script
@@ -71,6 +74,15 @@ public class WallRunningScript : MonoBehaviour
         // Reset the y velocity so the player only moves horizontally
         pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, 0f, pMm.playerRigidBody.velocity.z);
 
+        if (wallRight)
+        {
+            animManager.PlayAnim("WallRunRight");
+        }
+        else
+        {
+            animManager.PlayAnim("WallRunLeft");
+        }
+
         // Set wall running flag
         isWallRunning = true;
 
@@ -119,6 +131,8 @@ public class WallRunningScript : MonoBehaviour
         // add force to the player along the wall forward direction
         pMm.playerRigidBody.AddForce(wallForward * wallRunForce, ForceMode.Force);
 
+        pMm.playerModelTransform.rotation = Quaternion.LookRotation(-wallForward);
+
         // add force into the wall to make the player stick to the wall
         pMm.playerRigidBody.AddForce(-wallNormal * 100f, ForceMode.Force);
     }
@@ -143,6 +157,15 @@ public class WallRunningScript : MonoBehaviour
     {
         // Gets the wall normal of the wall the player is on
         Vector3 wallNormal = wallRight ? rightWallHit.normal : leftWallHit.normal;
+
+        if (wallRight)
+        {
+            animManager.PlayAnim("WallJumpRight");
+        }
+        else
+        {
+            animManager.PlayAnim("WallJumpLeft");
+        }
 
         // Applies wall jump up force and wall jump side force
         Vector3 totalJumpForce = transform.up * wallJumpUpForce + wallNormal * wallJumpSideForce;
