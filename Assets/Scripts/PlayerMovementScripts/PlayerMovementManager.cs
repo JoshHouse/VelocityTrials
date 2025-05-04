@@ -11,7 +11,9 @@ public class PlayerMovementManager : MonoBehaviour
     public Transform orientation;                           // Reference to the player's orientation
     public Rigidbody playerRigidBody;                       // Reference to the player's rigid body
     public AnimationManager animManager;
-    public Transform playerModel;
+    public Transform playerModelTransform;
+    public Renderer playerModelRenderer;
+    public Renderer armGrappleRenderer;
     private Transform body;                                 // Gets the body child object in the start function
     private Renderer bodyRenderer;                          // Gets the renderer of the body in the start function
     [HideInInspector] public float bodyLength;              // Gets the length of the body after rendering from the renderer
@@ -135,15 +137,22 @@ public class PlayerMovementManager : MonoBehaviour
             bodyHeight = bodyRenderer.bounds.size.y;
         }
 
+        playerModelTransform.localScale = new Vector3(1f / this.transform.localScale.x, 1f / this.transform.localScale.y, 1f / this.transform.localScale.z);
+
 
         // Gets input and calls movement activation functions
         GetInput();
+
+        playerModelRenderer.enabled = !firstPerson;
+        armGrappleRenderer.enabled = firstPerson;
 
         // Changes player's state
         StateManager();
 
         // Rotates the players arm while grappling
         gS.RotateArmOnGrapple();
+
+        gS.rotateBodyOnGrapple();
 
         animManager.checkForPlayingAnimation();
 

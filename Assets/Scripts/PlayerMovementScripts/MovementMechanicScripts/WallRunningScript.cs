@@ -131,7 +131,7 @@ public class WallRunningScript : MonoBehaviour
         // add force to the player along the wall forward direction
         pMm.playerRigidBody.AddForce(wallForward * wallRunForce, ForceMode.Force);
 
-        pMm.playerModel.rotation = Quaternion.LookRotation(-wallForward);
+        pMm.playerModelTransform.rotation = Quaternion.LookRotation(-wallForward);
 
         // add force into the wall to make the player stick to the wall
         pMm.playerRigidBody.AddForce(-wallNormal * 100f, ForceMode.Force);

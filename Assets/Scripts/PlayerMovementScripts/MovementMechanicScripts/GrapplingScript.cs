@@ -12,7 +12,8 @@ public class GrapplingScript : MonoBehaviour
 
     [Header("Grapple Parameters")]
     public LayerMask whatIsGrapplable;      // Layer mask for what is grapplable
-    public Transform grappleFirePoint;      // Reference to the transform component of the fire point on the grapple arm
+    public Transform firstPersonGrappleFirePoint;      // Reference to the transform component of the fire point on the grapple arm
+    public Transform thirdPersonGrappleFirePoint;      // Reference to the transform component of the fire point on the grapple arm
     public Transform playerCamera;          // Reference to the playerCamera's transform component
     public Transform armGrapple;            // Reference to the grapple arm's transform component
     public GameObject predictionVisualizer; // Visualizes prediction grapple point
@@ -22,6 +23,7 @@ public class GrapplingScript : MonoBehaviour
     public float predictionRadius;
 
     private LineRenderer lineRenderer;      // Reference to the line renderer of the grapple arm
+    private Quaternion armStartRotation;
     private Vector3 grapplePoint;           // Vector3 of the point you are grappling to
     private RaycastHit grappleHit;          // Variable to store the raycast response
     private SpringJoint grappleJoint;       // SpringJoint added to the player for grapple mechanics
@@ -47,6 +49,8 @@ public class GrapplingScript : MonoBehaviour
         isSwingGrappling = false;                                    // Initialize isGrappling to false when the game starts
         isPullGrappling = false;
         grappleCount = 0;                                       // Initialize the amount of grapples used in the air to 0
+
+        armStartRotation = armGrapple.rotation;
     }
 
     /*
@@ -121,7 +125,15 @@ public class GrapplingScript : MonoBehaviour
         grappleJoint.connectedAnchor = grapplePoint;
 
         // Get the distance from the grappled point
-        distanceFromPoint = Vector3.Distance(grappleFirePoint.position, grapplePoint);
+        if (pMm.firstPerson)
+        {
+            distanceFromPoint = Vector3.Distance(firstPersonGrappleFirePoint.position, grapplePoint);
+        }
+        else
+        {
+            distanceFromPoint = Vector3.Distance(thirdPersonGrappleFirePoint.position, grapplePoint);
+        }
+
 
         // Set the max distance and minimum distance from the point to be a proportion of the distance from the point
         grappleJoint.maxDistance = distanceFromPoint * .08f;
@@ -238,26 +250,66 @@ public class GrapplingScript : MonoBehaviour
         if (!isSwingGrappling && !isPullGrappling) return;
 
         // Set the first position of the line to be the fire point and the second point to be the grapple point
-        lineRenderer.SetPosition(0, grappleFirePoint.position);
+        if (pMm.firstPerson)
+        {
+            lineRenderer.SetPosition(0, firstPersonGrappleFirePoint.position);
+        }
+        else
+        {
+            lineRenderer.SetPosition(0, thirdPersonGrappleFirePoint.position);
+        }
+
+
         lineRenderer.SetPosition(1, grapplePoint);
     }
 
     // Function to rotate the arm when grappling
     public void RotateArmOnGrapple()
     {
-        if (!isSwingGrappling)
+        Quaternion desiredRotation;
+
+        if (isSwingGrappling)
         {
-            // If not grappling, set the desired arm rotation to the camera's rotation
-            desiredRotation = playerCamera.rotation;
+            // Calculate the direction from the arm to the grapple point
+            Vector3 direction = grapplePoint - armGrapple.position;
+
+            // Get the base desired rotation to look in that direction
+            Quaternion baseRotation = Quaternion.LookRotation(direction);
+
+            // Apply an extra -90° Y-axis rotation to correct the default rotation offset
+            Quaternion rotationOffset = Quaternion.Euler(0, -90f, 0);
+            desiredRotation = baseRotation * rotationOffset;
         }
         else
         {
-            // If grappling, set the desired rotation to look at the grapple point - the arm position
-            desiredRotation = Quaternion.LookRotation(grapplePoint - armGrapple.position);
+            // Return to the camera's forward direction (with -90 Y offset)
+            Quaternion baseRotation = Quaternion.LookRotation(playerCamera.forward);
+            Quaternion rotationOffset = Quaternion.Euler(0, -90f, 0);
+            desiredRotation = baseRotation * rotationOffset;
         }
 
-        // Lerp for a smooth transition from the current rotation to the desired rotation
+        // Smoothly interpolate to the desired rotation
         armGrapple.rotation = Quaternion.Lerp(armGrapple.rotation, desiredRotation, Time.deltaTime * rotationSpeed);
+    }
+
+    public void rotateBodyOnGrapple()
+    {
+        if (!isSwingGrappling)
+            return;
+
+        // Calculate direction from the object to the target
+        Vector3 directionToTarget = grapplePoint - pMm.playerModelTransform.position;
+
+        // Calculate a rotation where 'up' is pointing towards the target
+        Quaternion upRotation = Quaternion.FromToRotation(Vector3.up, directionToTarget.normalized);
+
+        // Apply 180-degree rotation around the Y-axis
+        Quaternion yAxis180 = Quaternion.Euler(0f, 180f, 0f);
+
+        // Combine the rotations
+        desiredRotation = upRotation * yAxis180;
+
+        pMm.playerModelTransform.rotation = Quaternion.Lerp(pMm.playerModelTransform.rotation, desiredRotation, Time.deltaTime * rotationSpeed);
     }
 
     /*

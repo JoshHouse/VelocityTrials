@@ -32,6 +32,8 @@ public class AirborneMovementScript : MonoBehaviour
 
     public void GetAirborneInput()
     {
+        transform.localScale = new Vector3(transform.localScale.x, gMs.startYscale, transform.localScale.z);
+
         // Shoots raycast to check for wall runnable walls
         wRs.CheckForWall();
 
@@ -75,6 +77,7 @@ public class AirborneMovementScript : MonoBehaviour
 
     public void airborneStateHandler()
     {
+
         // if wall running flag is active
         if (wRs.isWallRunning)
         {
@@ -121,7 +124,7 @@ public class AirborneMovementScript : MonoBehaviour
         }
         else if (pMm.moveDirection != Vector3.zero)
         {
-            pMm.playerModel.rotation = Quaternion.LookRotation(-pMm.moveDirection);
+            pMm.playerModelTransform.rotation = Quaternion.LookRotation(-pMm.moveDirection);
         }
 
         animManager.PlayAnim("Airborne");

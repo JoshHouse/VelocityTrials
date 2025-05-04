@@ -99,14 +99,13 @@ public class GroundedMovementScript : MonoBehaviour
             !sS.isSliding)
         {
             transform.localScale = new Vector3(transform.localScale.x, crouchYscale, transform.localScale.z);
-            pMm.playerModel.localScale = new Vector3(1f, 1f / crouchYscale, 1f);
+            
         }
 
         // Resets y scale if user releases the crouch key
         else if (GameManager.instance.crouchReleased)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
-            pMm.playerModel.localScale = new Vector3(1f, 1f, 1f);
         }
     }
 
@@ -227,7 +226,7 @@ public class GroundedMovementScript : MonoBehaviour
             pMm.playerRigidBody.AddForce(GetSlopeMovementDirection(pMm.moveDirection) * pMm.moveSpeed * 20f, ForceMode.Force);
             if (pMm.moveDirection != Vector3.zero)
             {
-                pMm.playerModel.rotation = Quaternion.LookRotation(-GetSlopeMovementDirection(pMm.moveDirection));
+                pMm.playerModelTransform.rotation = Quaternion.LookRotation(-GetSlopeMovementDirection(pMm.moveDirection));
             }
             return;
         }
@@ -237,7 +236,7 @@ public class GroundedMovementScript : MonoBehaviour
 
         if (pMm.moveDirection != Vector3.zero)
         {
-            pMm.playerModel.rotation = Quaternion.LookRotation(-pMm.moveDirection);
+            pMm.playerModelTransform.rotation = Quaternion.LookRotation(-pMm.moveDirection);
         }
 
 
