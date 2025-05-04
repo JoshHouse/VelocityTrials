@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class MantlingScript : MonoBehaviour
 {
+    [Header("Initialization")]
+    public AnimationManager animManager;
+
     [Header("Movement Manager Script")]
     public PlayerMovementManager pMm;       // Reference to the player movement manager
 
@@ -36,6 +39,8 @@ public class MantlingScript : MonoBehaviour
         pMm.playerRigidBody.useGravity = false;
         pMm.playerRigidBody.drag = 0f;
 
+        animManager.PlayAnim("Mantle");
+
         isMantling = true;
 
         Invoke(nameof(stopMantle), mantleLength);
@@ -58,7 +63,7 @@ public class MantlingScript : MonoBehaviour
         pMm.playerRigidBody.drag = pMm.groundedDrag;
 
         isMantling = false;
-    }
+    }                            
 
     public bool canMantle()
     {
@@ -67,18 +72,18 @@ public class MantlingScript : MonoBehaviour
         forwardRayOrigin = new Vector3(transform.position.x, transform.position.y + playerSemiCircleRadius, transform.position.z);
         forwardRayDistance = (pMm.bodyWidth / 2) + maxMantleDistance;
 
-        Debug.DrawRay(forwardRayOrigin, pMm.orientation.forward, color:Color.red ,forwardRayDistance);
+        Debug.DrawRay(forwardRayOrigin, pMm.moveDirection, color:Color.red ,forwardRayDistance);
 
-        if (!Physics.Raycast(forwardRayOrigin, pMm.orientation.forward, out forwardMantleHit, forwardRayDistance, whatIsMantlable))
+        if (!Physics.Raycast(forwardRayOrigin, pMm.moveDirection, out forwardMantleHit, forwardRayDistance, whatIsMantlable))
             return false;
 
-        topRayOrigin = new Vector3(forwardMantleHit.point.x + (pMm.orientation.forward.x * .1f), 1f * maxMantleObjectHeight, forwardMantleHit.point.z + (pMm.orientation.forward.z * .1f));
+        topRayOrigin = new Vector3(forwardMantleHit.point.x + (pMm.moveDirection.x * .1f), 1f * maxMantleObjectHeight, forwardMantleHit.point.z + (pMm.moveDirection.z * .1f));
         topRayDistance = maxMantleObjectHeight + .1f;
 
         if (!Physics.Raycast(topRayOrigin, Vector3.down, out topMantleHit, topRayDistance, whatIsMantlable))
             return false;
 
-        return (topMantleHit.point.y - transform.position.y <= maxMantleObjectHeight) && pMm.verticalInput > 0f;
+        return (topMantleHit.point.y - transform.position.y <= maxMantleObjectHeight) && (pMm.verticalInput != 0f || pMm.horizontalInput != 0f);
     }
 
 }

@@ -1,0 +1,25 @@
+# Blender 4.3.2 MTL File: 'Dummy2048Arm.blend'
+# www.blender.org
+
+newmtl Black_leather
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd leather30_diffuse.jpg
+map_Ns leather30_roughness.jpg
+map_Bump -bm 1.000000 leather30_opengl_normal.jpg
+
+newmtl Yellow_leather
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd leather04_diffuse.jpg
+map_Ks leather_specular.jpg
+map_refl leather_metallic.jpg
+map_Bump -bm 1.000000 leather_normal_opengl.jpg
