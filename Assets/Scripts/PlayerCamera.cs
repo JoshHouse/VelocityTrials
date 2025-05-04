@@ -6,6 +6,7 @@ public class PlayerCamera : MonoBehaviour
 {
     [Header("Initialization")]
     public Transform orientation;       // Reference to the orientation of the player
+    public Transform cameraTracker;
 
     [Header("Movement Scripts")]
     public WallRunningScript wRs;       // Reference to wall running script for wall running lean
@@ -56,7 +57,7 @@ public class PlayerCamera : MonoBehaviour
         rotationZ = Mathf.Lerp(rotationZ, targetRotationZ, Time.deltaTime * wRs.rotationSmoothing);
 
         // Apply rotation to the camera
-        transform.rotation = Quaternion.Euler(rotationX, rotationY, rotationZ);
+        cameraTracker.rotation = Quaternion.Euler(rotationX, rotationY, rotationZ);
         // Only rotate y axis rotation to the orientation
         orientation.rotation = Quaternion.Euler(0f, rotationY, 0f);
 

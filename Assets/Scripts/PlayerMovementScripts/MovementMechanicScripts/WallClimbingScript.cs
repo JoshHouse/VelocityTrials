@@ -85,6 +85,8 @@ public class WallClimbingScript : MonoBehaviour
             // Manually set the y velocity of the player (more simple than adding force since dynamic upward movement isnt necessary for climbing)
             pMm.playerRigidBody.velocity = new Vector3(pMm.playerRigidBody.velocity.x, pMm.wallClimbUpSpeed, pMm.playerRigidBody.velocity.z);
 
+            pMm.playerModel.rotation = Quaternion.LookRotation(frontWallHit.normal);
+
             // Decrease the timer
             climbTimer -= Time.deltaTime;
         }

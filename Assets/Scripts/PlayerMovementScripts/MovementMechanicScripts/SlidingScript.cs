@@ -41,6 +41,7 @@ public class SlidingScript : MonoBehaviour
 
         // Shrink y scale
         transform.localScale = new Vector3(transform.localScale.x, gMs.crouchYscale, transform.localScale.z);
+        pMm.playerModel.localScale = new Vector3(1f, 1f / gMs.crouchYscale, 1f);
 
         // Reset the slide timer
         slideTimer = maxSlideTime;
@@ -94,6 +95,7 @@ public class SlidingScript : MonoBehaviour
 
         // Reset y scale back to default
         transform.localScale = new Vector3(transform.localScale.x, gMs.startYscale, transform.localScale.z);
+        pMm.playerModel.localScale = new Vector3(1f, 1f, 1f);
     }
 
     public void StopSlideWithMomentum()
@@ -103,6 +105,7 @@ public class SlidingScript : MonoBehaviour
 
         // Reset y scale back to default
         transform.localScale = new Vector3(transform.localScale.x, gMs.startYscale, transform.localScale.z);
+        pMm.playerModel.localScale = new Vector3(1f, 1f, 1f);
     }
 
 }

@@ -50,6 +50,7 @@ public class MantlingScript : MonoBehaviour
     {
         transform.position = new Vector3(transform.position.x, topMantleHit.point.y + .1f, transform.position.z);
         transform.localScale = new Vector3(transform.localScale.x, mantleYScale, transform.localScale.z);
+        pMm.playerModel.localScale = new Vector3(1f, 1f / mantleYScale, 1f);
 
         Vector3 flatMoveSpeed = pMm.moveDirection.normalized * pMm.moveSpeed;
         pMm.playerRigidBody.velocity = flatMoveSpeed;
@@ -58,6 +59,7 @@ public class MantlingScript : MonoBehaviour
     public void stopMantle()
     {
         transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
+        pMm.playerModel.localScale = new Vector3(1f, 1f, 1f);
 
         pMm.playerRigidBody.useGravity = true;
         pMm.playerRigidBody.drag = pMm.groundedDrag;

@@ -114,6 +114,16 @@ public class AirborneMovementScript : MonoBehaviour
         // Add force in the player's movement direction
         pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f * airMultiplier, ForceMode.Force);
 
+        if (pMm.wCs.isClimbing)
+        {
+            animManager.PlayAnim("Climb");
+            return;
+        }
+        else if (pMm.moveDirection != Vector3.zero)
+        {
+            pMm.playerModel.rotation = Quaternion.LookRotation(-pMm.moveDirection);
+        }
+
         animManager.PlayAnim("Airborne");
     }
 

@@ -17,8 +17,9 @@ GameObject:
   - component: {fileID: 8234330309053334092}
   - component: {fileID: 2810936864055035953}
   - component: {fileID: 419896737790321722}
-  - component: {fileID: 7567237362276632562}
   - component: {fileID: 6339462521123295785}
+  - component: {fileID: 43493440356806492}
+  - component: {fileID: 3993044867593757385}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -40,7 +41,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1509551997508293867}
-  - {fileID: 1688952838296206350}
+  - {fileID: 1918987837139238386}
   - {fileID: 1883512453139218029}
   - {fileID: 5069709900778462515}
   m_Father: {fileID: 0}
@@ -116,20 +117,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orientation: {fileID: 1883512453139218029}
   playerRigidBody: {fileID: 5491929309150600141}
+  animManager: {fileID: 3993044867593757385}
   bodyLength: 0
   bodyWidth: 0
   bodyHeight: 0
   gMs: {fileID: 4625043184646387363}
   aMs: {fileID: 5931680641840119790}
-  gS: {fileID: 7567237362276632562}
+  gS: {fileID: 43493440356806492}
   wCs: {fileID: 419896737790321722}
   mS: {fileID: 6339462521123295785}
-  jumpKey: 32
-  sprintKey: 304
-  crouchKey: 306
-  slideKey: 99
-  swingGrappleKey: 323
-  pullGrappleKey: 324
   groundedDrag: 4
   crouchSpeed: 3
   walkSpeed: 7
@@ -167,6 +163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 687c160ef85d841788ecf57f96c081bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
   pMm: {fileID: 5368419491837734886}
   aMs: {fileID: 5931680641840119790}
   sS: {fileID: 8234330309053334092}
@@ -189,6 +186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31c515ed8053147a0aa30173277b7da1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
   pMm: {fileID: 5368419491837734886}
   gMs: {fileID: 4625043184646387363}
   wRs: {fileID: 2810936864055035953}
@@ -206,6 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 952af3bcab2ea4a6d85de10b2ae47e31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
   pMm: {fileID: 5368419491837734886}
   gMs: {fileID: 4625043184646387363}
   maxSlideTime: 0.75
@@ -224,6 +223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70e1b95d374654207a05baa372e9bc8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
   pMm: {fileID: 5368419491837734886}
   aMs: {fileID: 5931680641840119790}
   whatIsWall:
@@ -253,6 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 207364e8cdc2442f69c45db10d01807e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
   pMm: {fileID: 5368419491837734886}
   gMs: {fileID: 4625043184646387363}
   aMs: {fileID: 5931680641840119790}
@@ -270,35 +271,6 @@ MonoBehaviour:
   maxWallLookAngle: 30
   wallLookAngle: 0
   wallInFront: 0
---- !u!114 &7567237362276632562
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 588052411198233945}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a99e37758067f432d88e97424c95487e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pMm: {fileID: 5368419491837734886}
-  whatIsGrapplable:
-    serializedVersion: 2
-    m_Bits: 6291456
-  grappleFirePoint: {fileID: 0}
-  playerCamera: {fileID: 0}
-  armGrapple: {fileID: 0}
-  predictionVisualizer: {fileID: 9109217289793197940}
-  grapplesAllowed: 2
-  grappleCount: 0
-  maxGrappleDistance: 30
-  predictionRadius: 3
-  movementDelay: 1.5
-  heightGain: 2
-  isPullGrappling: 0
-  isSwingGrappling: 0
-  rotationSpeed: 5
 --- !u!114 &6339462521123295785
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -311,6 +283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4a8d24052587c43f0bdb4e03ef0ae4da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
   pMm: {fileID: 5368419491837734886}
   playerObj: {fileID: 7812680945247674416}
   maxMantleDistance: 2
@@ -327,6 +300,49 @@ MonoBehaviour:
   topRayDistance: 0
   forwardRayOrigin: {x: 0, y: 0, z: 0}
   topRayOrigin: {x: 0, y: 0, z: 0}
+--- !u!114 &43493440356806492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 588052411198233945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a99e37758067f432d88e97424c95487e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animManager: {fileID: 3993044867593757385}
+  pMm: {fileID: 5368419491837734886}
+  whatIsGrapplable:
+    serializedVersion: 2
+    m_Bits: 6291456
+  grappleFirePoint: {fileID: 0}
+  playerCamera: {fileID: 0}
+  armGrapple: {fileID: 0}
+  predictionVisualizer: {fileID: 0}
+  grapplesAllowed: 2
+  grappleCount: 0
+  maxGrappleDistance: 30
+  predictionRadius: 3
+  movementDelay: 1.5
+  heightGain: 2
+  isPullGrappling: 0
+  isSwingGrappling: 0
+  rotationSpeed: 5
+--- !u!114 &3993044867593757385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 588052411198233945}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f7cc449fbe16401391009a776bbd77f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pAnimator: {fileID: 0}
 --- !u!1 &2378267520063228161
 GameObject:
   m_ObjectHideFlags: 0
@@ -337,7 +353,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1688952838296206350}
   m_Layer: 0
-  m_Name: CameraPosition
+  m_Name: FirstPersonCameraPosition
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -351,12 +367,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2378267520063228161}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7812680945247674416}
+  m_Father: {fileID: 1918987837139238386}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4120503927149397046
 GameObject:
@@ -496,6 +512,70 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &8968766509338733827
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3518392277843831271}
+  m_Layer: 0
+  m_Name: ThirdPersonCameraPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3518392277843831271
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8968766509338733827}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: -2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1918987837139238386}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &9077330549445805286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1918987837139238386}
+  m_Layer: 0
+  m_Name: CameraTracker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1918987837139238386
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9077330549445805286}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1688952838296206350}
+  - {fileID: 3518392277843831271}
+  m_Father: {fileID: 7812680945247674416}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9109217289793197940
 GameObject:
   m_ObjectHideFlags: 0

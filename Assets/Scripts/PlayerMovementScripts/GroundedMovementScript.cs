@@ -99,12 +99,14 @@ public class GroundedMovementScript : MonoBehaviour
             !sS.isSliding)
         {
             transform.localScale = new Vector3(transform.localScale.x, crouchYscale, transform.localScale.z);
+            pMm.playerModel.localScale = new Vector3(1f, 1f / crouchYscale, 1f);
         }
 
         // Resets y scale if user releases the crouch key
         else if (GameManager.instance.crouchReleased)
         {
             transform.localScale = new Vector3(transform.localScale.x, startYscale, transform.localScale.z);
+            pMm.playerModel.localScale = new Vector3(1f, 1f, 1f);
         }
     }
 
@@ -183,19 +185,22 @@ public class GroundedMovementScript : MonoBehaviour
             return;
         }
 
-        // If not sprinting, sliding, or crouching, they are walking so set their state
-        pMm.movementState = PlayerMovementManager.MovementState.walking;
-        // Set their max speed to walk speed
-        pMm.desiredMoveSpeed = pMm.walkSpeed;
+        if (!(pMm.horizontalInput == 0) || !(pMm.verticalInput == 0))
+        {
+            // If not sprinting, sliding, or crouching, they are walking so set their state
+            pMm.movementState = PlayerMovementManager.MovementState.walking;
+            // Set their max speed to walk speed
+            pMm.desiredMoveSpeed = pMm.walkSpeed;
 
-        if (pMm.horizontalInput == 0 && pMm.verticalInput == 0)
-        {
-            animManager.PlayAnim("GrIdle");
-        }
-        else
-        {
             animManager.PlayAnim("Walk");
+            return;
         }
+
+
+        pMm.movementState = PlayerMovementManager.MovementState.idle;
+        pMm.desiredMoveSpeed = 0f;
+        animManager.PlayAnim("GrIdle");
+
 
     }
 
@@ -220,11 +225,23 @@ public class GroundedMovementScript : MonoBehaviour
         if (OnSlope() && !jumpOnSlope)
         {
             pMm.playerRigidBody.AddForce(GetSlopeMovementDirection(pMm.moveDirection) * pMm.moveSpeed * 20f, ForceMode.Force);
+            if (pMm.moveDirection != Vector3.zero)
+            {
+                pMm.playerModel.rotation = Quaternion.LookRotation(-GetSlopeMovementDirection(pMm.moveDirection));
+            }
             return;
         }
 
         // If not on slope or jumping off the slope, add flat force
         pMm.playerRigidBody.AddForce(pMm.moveDirection.normalized * pMm.moveSpeed * 10f, ForceMode.Force);
+
+        if (pMm.moveDirection != Vector3.zero)
+        {
+            pMm.playerModel.rotation = Quaternion.LookRotation(-pMm.moveDirection);
+        }
+
+
+
     }
 
     /*

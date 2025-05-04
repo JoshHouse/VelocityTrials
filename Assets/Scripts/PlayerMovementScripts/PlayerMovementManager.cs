@@ -11,11 +11,14 @@ public class PlayerMovementManager : MonoBehaviour
     public Transform orientation;                           // Reference to the player's orientation
     public Rigidbody playerRigidBody;                       // Reference to the player's rigid body
     public AnimationManager animManager;
+    public Transform playerModel;
     private Transform body;                                 // Gets the body child object in the start function
     private Renderer bodyRenderer;                          // Gets the renderer of the body in the start function
     [HideInInspector] public float bodyLength;              // Gets the length of the body after rendering from the renderer
     [HideInInspector] public float bodyWidth;               // Gets the width of the body after rendering from the renderer
     [HideInInspector] public float bodyHeight;              // Gets the height of the body after rendering from the renderer
+
+    [HideInInspector] public bool firstPerson;
 
     [Header("Movement Scripts")]
     public GroundedMovementScript gMs;                      // Reference to the grounded movement script
@@ -46,6 +49,7 @@ public class PlayerMovementManager : MonoBehaviour
     public MovementState movementState;                     // Enum to track the player's movement state
     public enum MovementState
     {
+        idle,
         crouching,
         walking,
         sprinting,
@@ -80,6 +84,8 @@ public class PlayerMovementManager : MonoBehaviour
     {
         // Freeze rigidbody rotation
         playerRigidBody.freezeRotation = true;
+
+        firstPerson = true;
 
         // Get the child from position 0 (the body object)
         body = transform.GetChild(0);
@@ -116,9 +122,18 @@ public class PlayerMovementManager : MonoBehaviour
                         || gMs.OnSlope();           // Slope check also activates the grounded flag
 
         // Get the Length, Width, and Height of the body from the renderer
-        bodyWidth = bodyRenderer.bounds.size.x;
-        bodyLength = bodyRenderer.bounds.size.z;
-        bodyHeight = bodyRenderer.bounds.size.y;
+        if (body == null || bodyRenderer == null)
+        {
+            bodyWidth = 1;
+            bodyLength = 1;
+            bodyHeight = 2;
+        }
+        else
+        {
+            bodyWidth = bodyRenderer.bounds.size.x;
+            bodyLength = bodyRenderer.bounds.size.z;
+            bodyHeight = bodyRenderer.bounds.size.y;
+        }
 
 
         // Gets input and calls movement activation functions
@@ -199,6 +214,9 @@ public class PlayerMovementManager : MonoBehaviour
         // Get movement input
         horizontalInput = GameManager.instance.moveInput.x;
         verticalInput = GameManager.instance.moveInput.y;
+
+        if (Input.GetKeyDown(KeyCode.Tab))
+            firstPerson = !firstPerson;
 
         bool shouldGatherStandardInput = attemptGatherMechanicInput();
 
@@ -374,6 +392,8 @@ public class PlayerMovementManager : MonoBehaviour
     {
         // Set their moveDirection based on their input
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
+
+
 
         // Set their gravity based on whether they are on a slope or wall running
         playerRigidBody.useGravity = (!gMs.OnSlope() && !aMs.wRs.isWallRunning);
