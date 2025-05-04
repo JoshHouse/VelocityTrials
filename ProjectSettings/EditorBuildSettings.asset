@@ -89,5 +89,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Levels/Stairs.unity
     guid: 1960fe1e0f5447344b38f2ba4ad8b107
+  - enabled: 1
+    path: Assets/Scenes/Levels/DummyTheGrappler.unity
+    guid: d1260266940c3134090a4655d919626b
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 8c2e9e0910f4cc6428889c7dd852dbbf, type: 2}

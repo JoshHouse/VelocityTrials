@@ -28,7 +28,7 @@ public class AudioManager : MonoBehaviour
         audioSource.clip = clip;
         audioSource.Play();
         float clipLength = audioSource.clip.length;
-        Destroy(audioSource, clipLength);
+        Destroy(audioSource.gameObject, clipLength);
     }
 
     public void PlayVoiceClip(AudioClip clip, Transform spawnPoint)
