@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LevelExit : MonoBehaviour
 {
@@ -19,8 +20,9 @@ public class LevelExit : MonoBehaviour
     // Reference to Best Time Manager for recording Best Times
     private BTManager bestTimeManager;
 
-    // Timer's UI element
+    // Timer's UI elements
     private TextMeshProUGUI timerUI;
+    private Image timerPanel;
 
     // Time player is taking to complete level
     private float timer = 0.0f;
@@ -41,8 +43,9 @@ public class LevelExit : MonoBehaviour
         // Get Best Time Manager
         bestTimeManager = GameManager.instance.GetComponent<BTManager>();
 
-        // Get timerUI
+        // Get timerUI and timerPanel
         timerUI = GameObject.Find("/UI/TimerUI").GetComponent<TextMeshProUGUI>();
+        timerPanel = GameObject.Find("/UI/TimerPanel").GetComponent<Image>();
     }
 
     // Update is called every frame, if the MonoBehaviour is enabled
@@ -60,6 +63,7 @@ public class LevelExit : MonoBehaviour
         else
         {
             timerUI.text = "";
+            timerPanel.enabled = false;
         }       
     }
 

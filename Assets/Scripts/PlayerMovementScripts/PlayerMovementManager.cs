@@ -78,7 +78,6 @@ public class PlayerMovementManager : MonoBehaviour
     public TextMeshProUGUI MoveSpeedText;                  // UI text element reference
     public TextMeshProUGUI GrappleCountText;                   // UI text element reference
     public TextMeshProUGUI DoubleJumpText;                   // UI text element reference
-    public TextMeshProUGUI TimerText;                  // UI text element reference
 
 
     [HideInInspector] public float horizontalInput;         // Variable for tracking Horizontal input
@@ -575,8 +574,6 @@ public class PlayerMovementManager : MonoBehaviour
 
         GrappleCountText.text = "Grapples Ready: " + (gS.grapplesAllowed - gS.grappleCount).ToString();
         DoubleJumpText.text = "Double Jump Ready: " + aMs.doubleJumpReady.ToString();
-
-        TimerText.text = "Placeholder Timer text";
     }
 
 }
