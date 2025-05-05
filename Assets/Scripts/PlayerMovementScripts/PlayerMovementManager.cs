@@ -573,7 +573,7 @@ public class PlayerMovementManager : MonoBehaviour
         VerticalVelText.text = "Vertical Velocity: " + verticalMoveSpeed.ToString();
         MoveSpeedText.text = "Move Speed: " + moveSpeed.ToString();
 
-        GrappleCountText.text = "Grapples Ready: " + gS.grappleCount.ToString();
+        GrappleCountText.text = "Grapples Ready: " + (gS.grapplesAllowed - gS.grappleCount).ToString();
         DoubleJumpText.text = "Double Jump Ready: " + aMs.doubleJumpReady.ToString();
 
         TimerText.text = "Placeholder Timer text";
