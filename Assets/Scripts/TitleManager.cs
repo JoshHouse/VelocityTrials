@@ -8,15 +8,20 @@ public class TitleManager : MonoBehaviour
 {
 
     public static TitleManager instance;
-
+    [Header("Title Screen Objects")]
     [SerializeField] private GameObject titleCovering;
+    [SerializeField] GameObject centerDoor;
+    
     private Transform whiteBG;
     private Image whiteBGImage;
     private Transform blackL;
     private Transform blackR;
 
-    [SerializeField] GameObject centerDoor;
+    [Header("Level Select Screen Objects")]
+    [SerializeField] private GameObject levelsPanel;
+    [SerializeField] private GameObject backButton;
 
+    [Header("Audio Objects")]
     [SerializeField] private AudioClip[] voiceClips;
     [SerializeField] private AudioClip titleBGM;
 
@@ -96,7 +101,9 @@ public class TitleManager : MonoBehaviour
     public IEnumerator EnterLevel(int levelIndex, GameManager.GameStates gameState)
     {
         titleCovering.SetActive(true);
-        StartCoroutine(MovementLERP(centerDoor.transform, 1f, centerDoor.transform.localPosition, centerDoor.transform.localPosition + new Vector3(0, 10, 0)));
+        StartCoroutine(MovementLERP(centerDoor.transform, 1.5f, centerDoor.transform.localPosition, centerDoor.transform.localPosition + new Vector3(0, 10, 0)));
+        StartCoroutine(MovementLERP(levelsPanel.transform, 0.6f, levelsPanel.transform.localPosition, new Vector3(-(Screen.width), 0, 0)));
+        StartCoroutine(MovementLERP(backButton.transform, 1f, backButton.transform.localPosition, new Vector3(0, -(Screen.height), 0)));
 
         float clipLength = voiceClips[1].length;
         AudioManager.instance.PlayVoiceClip(voiceClips[1], transform);
