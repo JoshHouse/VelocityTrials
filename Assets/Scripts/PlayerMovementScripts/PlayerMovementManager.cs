@@ -73,9 +73,12 @@ public class PlayerMovementManager : MonoBehaviour
     [HideInInspector] public bool grounded;                 // Flag for if the player is grounded
 
     [Header("UI References")]
-    public TextMeshProUGUI topRightText1;                   // UI text element reference
-    public TextMeshProUGUI topRightText2;                   // UI text element reference
-    public TextMeshProUGUI bottomLeftText;                  // UI text element reference
+    public TextMeshProUGUI HorizontalVelText;                   // UI text element reference
+    public TextMeshProUGUI VerticalVelText;                   // UI text element reference
+    public TextMeshProUGUI MoveSpeedText;                  // UI text element reference
+    public TextMeshProUGUI GrappleCountText;                   // UI text element reference
+    public TextMeshProUGUI DoubleJumpText;                   // UI text element reference
+    public TextMeshProUGUI TimerText;                  // UI text element reference
 
 
     [HideInInspector] public float horizontalInput;         // Variable for tracking Horizontal input
@@ -560,16 +563,20 @@ public class PlayerMovementManager : MonoBehaviour
 
     private void UpdateUI()
     {
-        double flatSpeed = new Vector3(playerRigidBody.velocity.x, 0f, playerRigidBody.velocity.z).magnitude;
-        double totalSpeed = playerRigidBody.velocity.magnitude;
+        double horizontalMoveSpeed = new Vector3(playerRigidBody.velocity.x, 0f, playerRigidBody.velocity.z).magnitude;
+        double verticalMoveSpeed = new Vector3(0f, playerRigidBody.velocity.y, 0f).magnitude;
 
         //topRightText1.text = "Horizontal Speed: " + Math.Round(flatSpeed, 2).ToString();
         //topRightText2.text = "Total Speed: " + totalSpeed.ToString();
 
-        topRightText1.text = "Movement State:  " + movementState.ToString();
-        topRightText2.text = "Move Speed: " + moveSpeed.ToString();
+        HorizontalVelText.text = "Horizontal Velocity:  " + horizontalMoveSpeed.ToString();
+        VerticalVelText.text = "Vertical Velocity: " + verticalMoveSpeed.ToString();
+        MoveSpeedText.text = "Move Speed: " + moveSpeed.ToString();
 
-        bottomLeftText.text = "OnSlope: " + gMs.OnSlope().ToString();
+        GrappleCountText.text = "Grapples Ready: " + gS.grappleCount.ToString();
+        DoubleJumpText.text = "Double Jump Ready: " + aMs.doubleJumpReady.ToString();
+
+        TimerText.text = "Placeholder Timer text";
     }
 
 }
