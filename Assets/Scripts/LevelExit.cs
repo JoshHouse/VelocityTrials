@@ -6,9 +6,15 @@ using UnityEngine.SceneManagement;
 
 public class LevelExit : MonoBehaviour
 {
-    // Current Scene index (preferably in build settings)
+    // Current Scene index
     static int thisSceneIndex;
+
+    // Number of built Scenes
     static int builtScenesCount;
+
+    // Reference to Best Time Manager for recording Best Times
+    private BTManager bestTimeManager;
+
 
     // Start is called before the first frame update
     void Start()
@@ -18,6 +24,9 @@ public class LevelExit : MonoBehaviour
 
         // Get built scenes count
         builtScenesCount = SceneManager.sceneCountInBuildSettings;
+
+        // Get Best Time Manager
+        bestTimeManager = GameManager.instance.GetComponent<BTManager>();
     }
 
     // Upon reaching Level Exit Door, load the next level and store the current best time (if better)
@@ -36,6 +45,8 @@ public class LevelExit : MonoBehaviour
                     SceneManager.LoadScene(thisSceneIndex + 1);
                 } else if (currState == GameManager.GameStates.IN_LEVEL_TIME) // Play is currently in a time attack level
                 {
+                    bestTimeManager.AddNewBestTime(thisSceneIndex, 1000f); // Submit Player's completion time for finishing Time Attack
+
                     if (PlayerPrefs.GetInt("TLevel-" + thisSceneIndex) == 1) // The previous time attack level has already been unlocked
                     {
                         SceneManager.LoadScene(thisSceneIndex + 1); // Load into that next level
