@@ -100,7 +100,6 @@ public class LevelExit : MonoBehaviour
             // If next Scene is not in build settings, load Main Menu
             else
             {
-                Debug.Log("Loading Main Menu");
                 SceneManager.LoadScene(0);
                 GameManager.instance.ChangeGameState(GameManager.GameStates.OPENING);
             }

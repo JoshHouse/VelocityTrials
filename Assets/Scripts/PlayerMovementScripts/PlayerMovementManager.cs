@@ -186,6 +186,11 @@ public class PlayerMovementManager : MonoBehaviour
             }
             else
             {
+                if (playerRigidBody.velocity.y < 0.1f)
+                {
+                    gS.StopPullGrapple();
+                }
+                    
                 animManager.PlayAnim("PullGrapple");
             }
 
