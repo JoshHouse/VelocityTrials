@@ -18,7 +18,11 @@ public class PlayerMovementAudio : MonoBehaviour
     [SerializeField] private AudioClip wallrunningSound;
     [SerializeField] private AudioClip wallClimbingSound;
     [SerializeField] private AudioClip grappleSound;
-    
+
+    // Reference to AudioManager
+    private AudioManager audioManager;
+    private bool usingInternalMusicSource = false;
+
     [Header("Volume Settings")]
     [SerializeField] [Range(0f, 1f)] private float movementVolume = 0.7f;
     [SerializeField] [Range(0f, 1f)] private float environmentVolume = 0.7f;
@@ -37,6 +41,14 @@ public class PlayerMovementAudio : MonoBehaviour
 
     private void Awake()
     {
+        // Find AudioManager or create one if needed
+        audioManager = FindObjectOfType<AudioManager>();
+        if (audioManager == null)
+        {
+            Debug.LogWarning("AudioManager not found. Using internal music source instead.");
+            usingInternalMusicSource = true;
+        }
+
         // Initialize audio sources if not set
         if (movementSource == null)
         {
@@ -97,10 +109,17 @@ public class PlayerMovementAudio : MonoBehaviour
     {
         if (clip != null && (movementSource.clip != clip || !movementSource.isPlaying))
         {
-            movementSource.clip = clip;
-            if (!movementSource.isPlaying)
+            if (!usingInternalMusicSource)
             {
-                movementSource.Play();
+                audioManager.PlaySFXClip(clip, playerMovementManager.transform);
+            }
+            else
+            {
+                movementSource.clip = clip;
+                if (!movementSource.isPlaying)
+                {
+                    movementSource.Play();
+                }
             }
         }
     }
