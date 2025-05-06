@@ -92,5 +92,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Levels/DummyTheGrappler.unity
     guid: d1260266940c3134090a4655d919626b
+  - enabled: 1
+    path: Assets/Scenes/Levels/GLevelTwo.unity
+    guid: 5d3302301e0d0aa4985b896bdb6e29c1
+  - enabled: 1
+    path: Assets/Scenes/Levels/GLevelFour.unity
+    guid: e2eafe1f4a37e254190750ad39e1c03f
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 8c2e9e0910f4cc6428889c7dd852dbbf, type: 2}
