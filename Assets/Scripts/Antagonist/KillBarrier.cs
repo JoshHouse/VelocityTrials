@@ -16,6 +16,10 @@ public class KillBarrier : MonoBehaviour
     // Position of player when Start() is called (where they are loaded in)
     private Vector3 spawnPos;
 
+    // Reference to AudioManager
+    private AudioManager audioManager;
+    private bool usingInternalMusicSource = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -36,6 +40,14 @@ public class KillBarrier : MonoBehaviour
 
         // Get player's spawn position
         spawnPos = player.transform.position;
+
+        // Find AudioManager or create one if needed
+        audioManager = FindObjectOfType<AudioManager>();
+        if (audioManager == null)
+        {
+            Debug.LogWarning("AudioManager not found. Using internal music source instead.");
+            usingInternalMusicSource = true;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -48,7 +60,14 @@ public class KillBarrier : MonoBehaviour
             deathParticles.Play();
 
             // Play explosion SFX
-            explosionAudioSource.Play();
+            if (!usingInternalMusicSource)
+            {
+                audioManager.PlaySFXClip(explosionAudioSource.clip, player.transform);
+            }
+            else
+            {
+                explosionAudioSource.Play();
+            }
 
             // Respawn player and nullify all velocity
             player.GetComponent<Rigidbody>().velocity = Vector3.zero;
