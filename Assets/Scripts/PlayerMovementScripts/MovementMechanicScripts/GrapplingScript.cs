@@ -191,8 +191,6 @@ public class GrapplingScript : MonoBehaviour
 
         // Change the line renderer to allow for 2 points
         lineRenderer.positionCount = 2;
-
-        StartCoroutine(WaitForJumpApex());
     }
 
     public void JumpToPosition(Vector3 targetPosition, float trajectoryHeight)
@@ -225,16 +223,7 @@ public class GrapplingScript : MonoBehaviour
         return velocityXZ + velocityY;
     }
 
-    private IEnumerator WaitForJumpApex()
-    {
-        // Wait until vertical velocity is close to zero (i.e., peak of arc)
-        while (Mathf.Abs(pMm.playerRigidBody.velocity.y) > 0.1f)
-        {
-            yield return null; // Wait for next frame
-        }
 
-        StopPullGrapple();
-    }
 
 
     /*
