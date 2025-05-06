@@ -8,34 +8,45 @@ public class AudioMixerManager : MonoBehaviour
 
     [SerializeField] private AudioMixer mixer;
 
-    private void Awake()
+    private void Start()
     {
-        mixer.SetFloat("bgmVolume", Mathf.Log10(PlayerPrefs.GetFloat("bgmVol", 0)) * 20f);
-        mixer.SetFloat("sfxVolume", Mathf.Log10(PlayerPrefs.GetFloat("sfxVol", 0)) * 20f);
-        mixer.SetFloat("voiceVolume", Mathf.Log10(PlayerPrefs.GetFloat("voiceVol", 0)) * 20f);
+        float masterVol = PlayerPrefs.GetFloat("masterVol", 0) / 100;
+        float bgmVol = PlayerPrefs.GetFloat("bgmVol", 0) / 100;
+        float sfxVol = PlayerPrefs.GetFloat("sfxVol", 0) / 100;
+        float voiceVol = PlayerPrefs.GetFloat("voiceVol", 0) / 100;
+
+        mixer.SetFloat("masterVolume", Mathf.Log10(masterVol) * 20f);
+        mixer.SetFloat("bgmVolume", Mathf.Log10(bgmVol) * 20f);
+        mixer.SetFloat("sfxVolume", Mathf.Log10(sfxVol) * 20f);
+        mixer.SetFloat("voiceVolume", Mathf.Log10(voiceVol) * 20f);
+    }
+
+    public void SetMasterVolume(float volume)
+    {
+        float mixerVolume = Mathf.Log10(volume / 100) * 20;
+        mixer.SetFloat("masterVolume", mixerVolume);
+        PlayerPrefs.SetFloat("masterVol", volume);
     }
 
     public void SetBGMVolume(float volume)
     {
-        mixer.SetFloat("bgmVolume", Mathf.Log10(volume) * 20f);
+        float mixerVolume = Mathf.Log10(volume / 100) * 20;
+        mixer.SetFloat("bgmVolume", mixerVolume);
         PlayerPrefs.SetFloat("bgmVol", volume);
     }
 
     public void setSFXVolume(float volume)
     {
-        mixer.SetFloat("sfxVolume", Mathf.Log10(volume) * 20f);
+        float mixerVolume = Mathf.Log10(volume / 100) * 20;
+        mixer.SetFloat("sfxVolume", mixerVolume);
         PlayerPrefs.SetFloat("sfxVol", volume);
     }
 
     public void setVoiceVolume(float volume)
     {
-        mixer.SetFloat("voiceVolume", Mathf.Log10(volume) * 20f);
+        float mixerVolume = Mathf.Log10(volume / 100) * 20;
+        mixer.SetFloat("voiceVolume", mixerVolume);
         PlayerPrefs.SetFloat("voiceVol", volume);
-    }
-
-    public void Mute()
-    {
-        mixer.SetFloat("masterVolume", (float) PlayerPrefs.GetInt("mute"));
     }
 
 }
