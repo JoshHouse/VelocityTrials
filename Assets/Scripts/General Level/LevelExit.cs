@@ -102,6 +102,7 @@ public class LevelExit : MonoBehaviour
             {
                 Debug.Log("Loading Main Menu");
                 SceneManager.LoadScene(0);
+                GameManager.instance.ChangeGameState(GameManager.GameStates.OPENING);
             }
         }
     }
