@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -66,6 +67,8 @@ public class GameManager : MonoBehaviour
 
     private void Awake() 
     {
+        gameState = (int)GameStates.OPENING;
+
         /*------Singleton Initialization-------*/
         if (instance == null)
         {
@@ -87,22 +90,23 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
-        gameState = (int) GameStates.OPENING;
-        if (gameState == (int)GameStates.OPENING)
-        {
-            if (TitleManager.instance != null)
-            {
-                StartCoroutine(TitleManager.instance.OpeningAnimation(1f));
-            }
-        }
-
     }
 
     // Update is called once per frame
     void Update()
     {
         UpdateInputs(); // Updates each input variable every frame
+
+        if (gameState == (int) GameStates.IN_LEVEL_NORMAL || gameState == (int)GameStates.IN_LEVEL_TIME)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                SceneManager.LoadScene(0);
+                ChangeGameState(GameStates.OPENING);
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+            }
+        }
     }
 
     private void SetUpInputActions()
@@ -150,6 +154,12 @@ public class GameManager : MonoBehaviour
     {
         gameState = (int) state;
         Debug.Log("Game State changed to: " + Enum.GetValues(typeof(GameStates)).GetValue(gameState));
+
+        if (gameState == (int) GameStates.EXIT)
+        {
+            Debug.Log("Game exited successfully");
+            Application.Quit();
+        }
     }
 
     /// <summary>
