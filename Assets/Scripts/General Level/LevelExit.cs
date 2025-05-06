@@ -93,13 +93,20 @@ public class LevelExit : MonoBehaviour
                     }
                     else // The previous time attack level has not been unlocked
                     {
+                        Cursor.visible = true;
+                        Cursor.lockState = CursorLockMode.None;
+
                         SceneManager.LoadScene(0); // Load the main menu
+                        GameManager.instance.ChangeGameState(GameManager.GameStates.OPENING);
                     }
                 }
             }
             // If next Scene is not in build settings, load Main Menu
             else
             {
+                Cursor.visible = true;
+                Cursor.lockState = CursorLockMode.None;
+
                 SceneManager.LoadScene(0);
                 GameManager.instance.ChangeGameState(GameManager.GameStates.OPENING);
             }
